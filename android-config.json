@@ -1,0 +1,28 @@
+{
+  "applicationName": "CaydenJoy",
+  "shortName": "CaydenJoy",
+  "packageId": "com.caydendev.caydenjoypwa",
+  "displayMode": "standalone",
+  "startUrl": "./",
+  "appVersion": "1.0.0",
+  "appBuild": "1",
+  "minSdkVersion": 24,
+  "targetSdkVersion": 34,
+  "permissions": [
+    "INTERNET",
+    "ACCESS_NETWORK_STATE"
+  ],
+  "features": [
+    "offline-support",
+    "notifications",
+    "dark-mode"
+  ],
+  "orientations": ["portrait", "landscape"],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/screen.png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    }
+  ]
+}
