@@ -90,6 +90,7 @@ export class AppHeader extends LitElement {
         <nav>
           <a href="${resolveRouterPath()}">Home</a>
           <a href="${resolveRouterPath('services')}">Services</a>
+          <a href="${resolveRouterPath('communication')}">Communication</a>
           <a href="${resolveRouterPath('faq')}">FAQ</a>
           <a href="${resolveRouterPath('settings')}">⚙ Settings</a>
         </nav>

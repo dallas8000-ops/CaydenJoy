@@ -17,6 +17,7 @@ import './pages/app-services.js';
 import './pages/app-contact.js';
 import './pages/app-settings.js';
 import './pages/app-faq.js';
+import './pages/app-communication.js';
 import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
@@ -47,6 +48,11 @@ export const router = new Router({
         path: resolveRouterPath('faq'),
         title: 'FAQ',
         render: () => html`<app-faq></app-faq>`
+      },
+      {
+        path: resolveRouterPath('communication'),
+        title: 'Communication',
+        render: () => html`<app-communication></app-communication>`
       },
       {
         path: resolveRouterPath('about'),
