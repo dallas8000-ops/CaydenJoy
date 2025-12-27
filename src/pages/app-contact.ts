@@ -57,7 +57,6 @@ export class AppContact extends LitElement {
         padding: 16px;
         border-radius: 4px;
         margin-bottom: 16px;
-        display: ${this.submitted ? 'block' : 'none'};
       }
 
       .contact-info {

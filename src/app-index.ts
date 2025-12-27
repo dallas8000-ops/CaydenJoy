@@ -44,3 +44,4 @@ export class AppIndex extends LitElement {
       <app-footer></app-footer>
     `;
   }
+}
