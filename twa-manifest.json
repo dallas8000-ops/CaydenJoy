@@ -1,0 +1,35 @@
+{
+  "packageId": "com.caydendev.caydenjoypwa",
+  "host": "localhost",
+  "name": "CaydenJoy",
+  "launcherName": "CaydenJoy",
+  "display": "standalone",
+  "themeColor": "#6C5CE7",
+  "navigationColor": "#6C5CE7",
+  "backgroundColor": "#F8F9FA",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "http://localhost:8080/assets/icons/512x512.png",
+  "maskableIconUrl": "http://localhost:8080/assets/icons/512x512.png",
+  "monochromeIconUrl": "http://localhost:8080/assets/icons/512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "http://localhost:8080/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 24,
+  "orientation": "portrait"
+}
