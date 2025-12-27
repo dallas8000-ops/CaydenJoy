@@ -14,6 +14,10 @@ import { title } from '@thepassle/app-tools/router/plugins/title.js';
 
 import './pages/app-home.js';
 import './pages/app-services.js';
+import './pages/app-contact.js';
+import './pages/app-settings.js';
+import './pages/app-faq.js';
+import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
 
@@ -28,6 +32,21 @@ export const router = new Router({
         path: resolveRouterPath('services'),
         title: 'Services',
         render: () => html`<app-services></app-services>`
+      },
+      {
+        path: resolveRouterPath('contact'),
+        title: 'Contact',
+        render: () => html`<app-contact></app-contact>`
+      },
+      {
+        path: resolveRouterPath('settings'),
+        title: 'Settings',
+        render: () => html`<app-settings></app-settings>`
+      },
+      {
+        path: resolveRouterPath('faq'),
+        title: 'FAQ',
+        render: () => html`<app-faq></app-faq>`
       },
       {
         path: resolveRouterPath('about'),
