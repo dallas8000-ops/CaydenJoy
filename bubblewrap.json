@@ -1,0 +1,18 @@
+{
+  "name": "CaydenJoy",
+  "short_name": "CaydenJoy",
+  "package": "com.caydendev.caydenjoypwa",
+  "display": "standalone",
+  "start_url": "/CaydenJoy/",
+  "manifest_url": "https://dallas8000-ops.github.io/CaydenJoy/manifest.json",
+  "icon_url": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/512x512.png",
+  "app_version": "1.0.0",
+  "app_version_code": 1,
+  "min_sdk_version": 24,
+  "orientation": "portrait",
+  "theme_color": "#6C5CE7",
+  "background_color": "#F8F9FA",
+  "status_bar_color": "#6C5CE7",
+  "enable_notifications": true,
+  "splash_padding_percentage": 10
+}
