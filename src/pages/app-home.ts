@@ -4,6 +4,7 @@ import { resolveRouterPath } from '../router';
 
 import '@shoelace-style/shoelace/dist/components/card/card.js';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
+import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
 import { styles } from '../styles/shared-styles';
 
@@ -12,7 +13,8 @@ export class AppHome extends LitElement {
 
   // For more information on using properties and state in lit
   // check out this link https://lit.dev/docs/components/properties/
-  @property() message = 'Welcome!';
+  @property() message = 'Welcome to CaydenJoy';
+  @property() isOnline = navigator.onLine;
 
   static styles = [
     styles,
@@ -59,6 +61,16 @@ export class AppHome extends LitElement {
     // this method is a lifecycle even in lit
     // for more info check out the lit docs https://lit.dev/docs/components/lifecycle/
     console.log('This is your home page');
+    
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      console.log('App is online');
+    });
+    window.addEventListener('offline', () => {
+      this.isOnline = false;
+      console.log('App is offline');
+    });
   }
 
   share() {
@@ -89,12 +101,9 @@ export class AppHome extends LitElement {
             </p>
 
             <p id="mainInfo">
-              Welcome to the
-              <a href="https://pwabuilder.com">PWABuilder</a>
-              pwa-starter! Be sure to head back to
-              <a href="https://pwabuilder.com">PWABuilder</a>
-              when you are ready to ship this PWA to the Microsoft Store, Google Play
-              and the Apple App Store!
+              CaydenJoy is your personal progressive web app for joy and productivity.
+              Build amazing experiences with modern web technologies.
+              ${this.isOnline ? html`<sl-badge variant="success">Online</sl-badge>` : html`<sl-badge variant="warning">Offline</sl-badge>`}
             </p>
 
             ${'share' in navigator
@@ -128,6 +137,7 @@ export class AppHome extends LitElement {
             </ul>
           </sl-card>
 
+          <sl-button href="${resolveRouterPath('services')}" variant="default">View Services</sl-button>
           <sl-button href="${resolveRouterPath('about')}" variant="primary">Navigate to About</sl-button>
         </div>
       </main>
