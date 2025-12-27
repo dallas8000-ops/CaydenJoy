@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "CaydenJoy - Progressive Web App",
   "short_name": "CaydenJoy",
   "description": "CaydenJoy is a progressive web app built for joy and productivity. Access your personalized experience anywhere, anytime.",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "theme_color": "#6C5CE7",
