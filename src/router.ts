@@ -18,6 +18,15 @@ import './pages/app-contact.js';
 import './pages/app-settings.js';
 import './pages/app-faq.js';
 import './pages/app-communication.js';
+import './pages/app-family-puzzle.js';
+import './pages/app-foods-enhanced.js';
+import './pages/app-home-enhanced.js';
+import './pages/app-colors.js';
+import './pages/app-numbers.js';
+import './pages/app-places.js';
+import './pages/app-body-parts.js';
+import './pages/app-feelings.js';
+import './pages/app-actions.js';
 import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
@@ -33,6 +42,11 @@ export const router = new Router({
         path: resolveRouterPath('home'),
         title: 'Home',
         render: () => html`<app-home></app-home>`
+      },
+      {
+        path: resolveRouterPath('home-enhanced'),
+        title: 'Quick Communication',
+        render: () => html`<app-home-enhanced></app-home-enhanced>`
       },
       {
         path: resolveRouterPath('services'),
@@ -53,6 +67,46 @@ export const router = new Router({
         path: resolveRouterPath('faq'),
         title: 'FAQ',
         render: () => html`<app-faq></app-faq>`
+      },
+      {
+        path: resolveRouterPath('family-puzzle'),
+        title: 'Family Puzzle',
+        render: () => html`<app-family-puzzle></app-family-puzzle>`
+      },
+      {
+        path: resolveRouterPath('foods'),
+        title: 'Foods',
+        render: () => html`<app-foods-enhanced></app-foods-enhanced>`
+      },
+      {
+        path: resolveRouterPath('colors'),
+        title: 'Colors',
+        render: () => html`<app-colors></app-colors>`
+      },
+      {
+        path: resolveRouterPath('numbers'),
+        title: 'Numbers',
+        render: () => html`<app-numbers></app-numbers>`
+      },
+      {
+        path: resolveRouterPath('places'),
+        title: 'Places',
+        render: () => html`<app-places></app-places>`
+      },
+      {
+        path: resolveRouterPath('body-parts'),
+        title: 'Body Parts',
+        render: () => html`<app-body-parts></app-body-parts>`
+      },
+      {
+        path: resolveRouterPath('feelings'),
+        title: 'Feelings',
+        render: () => html`<app-feelings></app-feelings>`
+      },
+      {
+        path: resolveRouterPath('actions'),
+        title: 'Actions',
+        render: () => html`<app-actions></app-actions>`
       },
       {
         path: resolveRouterPath('about'),
