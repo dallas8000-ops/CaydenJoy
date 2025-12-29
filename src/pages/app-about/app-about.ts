@@ -21,19 +21,55 @@ export class AppAbout extends LitElement {
       <app-header ?enableBack="${true}"></app-header>
 
       <main>
-        <h2>About Page</h2>
+        <h2>About CaydenJoy</h2>
 
         <sl-card>
-          <h2>Did you know?</h2>
+          <h2>👋 Why I Created CaydenJoy</h2>
 
-          <p>PWAs have access to many useful APIs in modern browsers! These
-            APIs have enabled many new types of apps that can be built as PWAs, such as advanced graphics editing apps, games,
-            apps that use machine learning and more!
+          <p>
+            CaydenJoy was created with love for my nonverbal grandson. Communication is a fundamental human right, 
+            and I wanted to give him a simple, intuitive tool to express himself.
           </p>
 
-          <p>Check out <a
-              href="https://docs.microsoft.com/en-us/microsoft-edge/progressive-web-apps-chromium/how-to/handle-files">these
-              docs</a> to learn more about the advanced features that you can use in your PWA</p>
+          <p>
+            <strong>The Problem:</strong> Expensive AAC (Augmentative and Alternative Communication) programs can cost 
+            $99-$300+ and are often complicated and difficult to navigate. My grandson struggled with the complexity—
+            navigating menus, remembering button locations, and understanding how to express what he needed.
+          </p>
+
+          <p>
+            <strong>The Solution:</strong> CaydenJoy is designed with simplicity and accessibility at its core. 
+            Large buttons, bright colors, clear organization, and voice feedback make communication easy and fun. 
+            Every feature is built with the user in mind—not complexity.
+          </p>
+
+          <h3>🎯 Our Features</h3>
+          <ul style="text-align: left; padding-left: 20px;">
+            <li><strong>Communication Board:</strong> 12 common phrases for immediate, everyday communication</li>
+            <li><strong>Interactive Categories:</strong> Foods, Colors, Numbers, Places, Family members, and more</li>
+            <li><strong>Puzzle Games:</strong> Family puzzle game for engagement and learning</li>
+            <li><strong>Voice Feedback:</strong> Every button speaks—instant audio confirmation</li>
+            <li><strong>Custom Images:</strong> Upload your own family photos (premium feature)</li>
+            <li><strong>Offline Support:</strong> Works without internet connection</li>
+            <li><strong>Emergency Button:</strong> Quick access to get help when needed</li>
+          </ul>
+
+          <h3>💰 Affordable & Fair Pricing</h3>
+          <p>
+            Base App: <strong>$19.99</strong> (one-time purchase)<br>
+            Premium Features (Custom Images): <strong>$5.99</strong> (one-time)<br>
+            <em>That's less than most coffee subscriptions—and it could change a life.</em>
+          </p>
+
+          <h3>💬 Get in Touch</h3>
+          <p>
+            Questions? Suggestions? Want to share how CaydenJoy is helping your family?<br>
+            <strong>Email: <a href="mailto:dallas8000@gmail.com" style="color: #667eea; text-decoration: none;">dallas8000@gmail.com</a></strong>
+          </p>
+
+          <p style="font-style: italic; color: #999; margin-top: 20px;">
+            "Communication is connection. Connection is love." 💜
+          </p>
         </sl-card>
       </main>
     `;
