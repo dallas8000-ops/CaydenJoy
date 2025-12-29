@@ -26,6 +26,11 @@ export const router = new Router({
     routes: [
       {
         path: resolveRouterPath(),
+        title: 'Communication',
+        render: () => html`<app-communication></app-communication>`
+      },
+      {
+        path: resolveRouterPath('home'),
         title: 'Home',
         render: () => html`<app-home></app-home>`
       },
@@ -48,11 +53,6 @@ export const router = new Router({
         path: resolveRouterPath('faq'),
         title: 'FAQ',
         render: () => html`<app-faq></app-faq>`
-      },
-      {
-        path: resolveRouterPath('communication'),
-        title: 'Communication',
-        render: () => html`<app-communication></app-communication>`
       },
       {
         path: resolveRouterPath('about'),
