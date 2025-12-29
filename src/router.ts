@@ -24,6 +24,8 @@ import './pages/app-home-enhanced.js';
 import './pages/app-colors.js';
 import './pages/app-numbers.js';
 import './pages/app-places.js';
+import './pages/app-premium.js';
+import './pages/app-custom-images.js';
 import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
@@ -89,6 +91,16 @@ export const router = new Router({
         path: resolveRouterPath('places'),
         title: 'Places',
         render: () => html`<app-places></app-places>`
+      },
+      {
+        path: resolveRouterPath('premium'),
+        title: 'Premium',
+        render: () => html`<app-premium></app-premium>`
+      },
+      {
+        path: resolveRouterPath('custom-images'),
+        title: 'Custom Images',
+        render: () => html`<app-custom-images></app-custom-images>`
       },
       {
         path: resolveRouterPath('about'),
