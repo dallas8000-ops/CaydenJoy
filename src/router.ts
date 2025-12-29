@@ -24,9 +24,6 @@ import './pages/app-home-enhanced.js';
 import './pages/app-colors.js';
 import './pages/app-numbers.js';
 import './pages/app-places.js';
-import './pages/app-body-parts.js';
-import './pages/app-feelings.js';
-import './pages/app-actions.js';
 import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
@@ -92,21 +89,6 @@ export const router = new Router({
         path: resolveRouterPath('places'),
         title: 'Places',
         render: () => html`<app-places></app-places>`
-      },
-      {
-        path: resolveRouterPath('body-parts'),
-        title: 'Body Parts',
-        render: () => html`<app-body-parts></app-body-parts>`
-      },
-      {
-        path: resolveRouterPath('feelings'),
-        title: 'Feelings',
-        render: () => html`<app-feelings></app-feelings>`
-      },
-      {
-        path: resolveRouterPath('actions'),
-        title: 'Actions',
-        render: () => html`<app-actions></app-actions>`
       },
       {
         path: resolveRouterPath('about'),

@@ -47,7 +47,7 @@ export class AppColors extends LitElement {
       text-align: center;
       padding: 2rem;
       background: var(--selected-color, #F0E8F8);
-      color: ${this.selectedColor && this.shouldUseDarkText(this.selectedColor.hex) ? '#000' : '#fff'};
+      color: inherit;
       border-radius: 1rem;
       margin-bottom: 2rem;
       min-height: 150px;
