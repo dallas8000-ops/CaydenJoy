@@ -1,8 +1,8 @@
 {
-  "id": "./",
-  "name": "CaydenJoy - Progressive Web App",
+  "id": "https://dallas8000-ops.github.io/CaydenJoy/",
+  "name": "CaydenJoy - Communication App",
   "short_name": "CaydenJoy",
-  "description": "CaydenJoy is a progressive web app built for joy and productivity. Access your personalized experience anywhere, anytime.",
+  "description": "CaydenJoy is an accessible communication app for nonverbal individuals with custom images, voice feedback, and family-friendly design.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -21,8 +21,16 @@
       "src": "assets/icons/512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "social"]
+  "categories": ["productivity", "social"],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/screen.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
 }
