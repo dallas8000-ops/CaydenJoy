@@ -1,6 +1,6 @@
 {
   "packageId": "com.caydendev.caydenjoypwa",
-  "host": "localhost",
+  "host": "raw.githubusercontent.com",
   "name": "CaydenJoy",
   "launcherName": "CaydenJoy",
   "display": "standalone",
@@ -8,10 +8,10 @@
   "navigationColor": "#6C5CE7",
   "backgroundColor": "#F8F9FA",
   "enableNotifications": true,
-  "startUrl": "/",
-  "iconUrl": "http://localhost:8080/assets/icons/512x512.png",
-  "maskableIconUrl": "http://localhost:8080/assets/icons/512x512.png",
-  "monochromeIconUrl": "http://localhost:8080/assets/icons/512x512.png",
+  "startUrl": "/dallas8000-ops/CaydenJoy/main/dist/index.html",
+  "iconUrl": "https://raw.githubusercontent.com/dallas8000-ops/CaydenJoy/main/dist/assets/icons/512x512.png",
+  "maskableIconUrl": "https://raw.githubusercontent.com/dallas8000-ops/CaydenJoy/main/dist/assets/icons/512x512.png",
+  "monochromeIconUrl": "https://raw.githubusercontent.com/dallas8000-ops/CaydenJoy/main/dist/assets/icons/512x512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",
@@ -21,7 +21,7 @@
   "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "http://localhost:8080/manifest.json",
+  "webManifestUrl": "https://raw.githubusercontent.com/dallas8000-ops/CaydenJoy/main/dist/manifest.json",
   "fallbackType": "customtabs",
   "features": {},
   "alphaDependencies": {
