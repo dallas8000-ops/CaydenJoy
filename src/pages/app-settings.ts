@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { resolveRouterPath } from '../router';
+import { PremiumManager } from '../utils/premium-manager';
 
 import '@shoelace-style/shoelace/dist/components/card/card.js';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
@@ -14,6 +15,9 @@ export class AppSettings extends LitElement {
   @property() darkMode = localStorage.getItem('darkMode') === 'true';
   @property() notifications = localStorage.getItem('notifications') !== 'false';
   @property() autoSync = localStorage.getItem('autoSync') !== 'false';
+  @state() isPremium = false;
+
+  private premiumManager = PremiumManager.getInstance();
 
   static styles = [
     styles,
@@ -120,6 +124,10 @@ export class AppSettings extends LitElement {
     }
   }
 
+  goToPremium() {
+    window.location.hash = '#/premium';
+  }
+
   render() {
     return html`
       <app-header></app-header>
@@ -127,6 +135,36 @@ export class AppSettings extends LitElement {
       <main>
         <h1>Settings</h1>
         <p>Customize your CaydenJoy experience</p>
+
+        ${!this.isPremium ? html`
+          <sl-card>
+            <div slot="header">
+              <h2>🌟 Upgrade to Premium</h2>
+            </div>
+            <div style="padding: 16px;">
+              <p>Unlock premium features for just <strong>$5.99</strong> (one-time)</p>
+              <ul style="margin: 12px 0; padding-left: 20px; text-align: left;">
+                <li>Upload unlimited custom family photos</li>
+                <li>Voice customization options</li>
+                <li>Cloud backup of your settings</li>
+                <li>Priority support</li>
+              </ul>
+              <sl-button variant="primary" @click=${this.goToPremium} style="width: 100%; margin-top: 12px;">
+                Upgrade Now
+              </sl-button>
+            </div>
+          </sl-card>
+        ` : html`
+          <sl-card>
+            <div slot="header">
+              <h2>👑 Premium Unlocked</h2>
+            </div>
+            <div style="padding: 16px;">
+              <p>✓ You have access to all premium features</p>
+              <p style="font-size: 14px; color: #666;">Thank you for supporting CaydenJoy!</p>
+            </div>
+          </sl-card>
+        `}
 
         <sl-card>
           <div slot="header">
@@ -219,5 +257,6 @@ export class AppSettings extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.applyDarkMode();
+    this.isPremium = this.premiumManager.isPremium();
   }
 }

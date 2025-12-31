@@ -8,6 +8,8 @@ import { styles } from './about-styles';
 import { styles as sharedStyles } from '../../styles/shared-styles'
 
 import '@shoelace-style/shoelace/dist/components/card/card.js';
+import '../../components/header';
+import '../../components/footer';
 
 @customElement('app-about')
 export class AppAbout extends LitElement {
@@ -56,14 +58,37 @@ export class AppAbout extends LitElement {
 
           <h3>💰 Affordable & Fair Pricing</h3>
           <p>
-            Base App: <strong>$19.99</strong> (one-time purchase)<br>
-            Premium Features (Custom Images): <strong>$5.99</strong> (one-time)<br>
+            <strong>Base App:</strong> $19.99 (one-time purchase)<br>
+            <strong>Premium Upgrade:</strong> $5.99 (one-time purchase)<br>
+            <strong>Total with Premium:</strong> $25.98
+          </p>
+
+          <p style="background: #f0f7ff; border-left: 4px solid #667eea; padding: 12px; border-radius: 4px; margin: 15px 0;">
             <em>That's less than most coffee subscriptions—and it could change a life.</em>
           </p>
 
+          <h4>Why This Pricing?</h4>
+          <ul style="text-align: left; padding-left: 20px;">
+            <li><strong>No Subscriptions:</strong> Unlike apps charging $5-15/month ($60-180/year), this is one-time</li>
+            <li><strong>Cheaper Than Alternatives:</strong> Professional AAC apps cost $99-$300+</li>
+            <li><strong>Supports Development:</strong> Your payment directly funds updates and improvements</li>
+            <li><strong>Forever Yours:</strong> Once purchased, premium features are yours permanently</li>
+          </ul>
+
+          <h4>What's Included in Premium?</h4>
+          <ul style="text-align: left; padding-left: 20px;">
+            <li>Unlimited custom image uploads</li>
+            <li>Organize family photos by category</li>
+            <li>Voice customization (speed, pitch, language)</li>
+            <li>Cloud backup of your data (optional)</li>
+            <li>Priority customer support</li>
+            <li>All future premium feature updates</li>
+            <li><strong>No ads • No tracking</strong></li>
+          </ul>
+
           <h3>💬 Get in Touch</h3>
           <p>
-            Questions? Suggestions? Want to share how CaydenJoy is helping your family?<br>
+            Questions about pricing? Interested in bulk licensing or family plans?<br>
             <strong>Email: <a href="mailto:dallas8000@gmail.com" style="color: #667eea; text-decoration: none;">dallas8000@gmail.com</a></strong>
           </p>
 

@@ -489,17 +489,47 @@ export class Premium extends LitElement {
 
         <div class="premium-card">
           <div class="pricing-section">
-            <p style="color: #666; margin-top: 0;">Limited Time Offer</p>
+            <h3 style="margin-top: 0; color: #333;">Pricing & Upgrade Details</h3>
+            
+            <div style="background: #f0f7ff; border-left: 4px solid #667eea; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              <p style="margin: 0 0 10px 0;"><strong>Base App Cost:</strong> $19.99 (One-Time Purchase)</p>
+              <p style="margin: 0 0 10px 0;"><strong>Premium Upgrade:</strong> <span style="color: #28a745; font-weight: bold;">$5.99</span> (One-Time Purchase)</p>
+              <p style="margin: 0; font-size: 13px; color: #666;"><em>Total investment: $25.98 for full access</em></p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+              <h4 style="margin-top: 0; color: #333;">Why This Price?</h4>
+              <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>Unlike subscription apps ($5-15/month = $60-180/year), this is a <strong>lifetime</strong> investment</li>
+                <li>Professional AAC software costs $99-$300+</li>
+                <li>Your payment directly supports development and updates</li>
+                <li>No hidden fees or recurring charges ever</li>
+              </ul>
+            </div>
+
             <div class="price-tag">
               <p class="price-amount">$5.99</p>
-              <p class="price-label">One-Time Purchase</p>
+              <p class="price-label">One-Time Premium Upgrade</p>
             </div>
-            <p style="color: #666;">Compare to similar apps at $9.99 - $19.99</p>
+            <p style="color: #666; margin-top: 10px; font-size: 14px;">✓ Save money compared to similar apps ($9.99 - $19.99)</p>
+          </div>
+
+          <div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #2e7d32;">✓ What You're Getting</h4>
+            <ul style="margin: 10px 0; padding-left: 20px; color: #333;">
+              <li>Unlimited custom image uploads</li>
+              <li>Organize your family photos by category</li>
+              <li>Voice customization options</li>
+              <li>Cloud backup of your settings (optional)</li>
+              <li>Priority customer support</li>
+              <li>All future premium feature updates</li>
+              <li>No ads • No tracking • No subscriptions</li>
+            </ul>
           </div>
 
           <div class="action-buttons">
             <button class="btn btn-primary" @click="${this.simulatePurchase}">
-              🛒 Unlock Premium Now
+              🛒 Unlock Premium Now ($5.99)
             </button>
             <button class="btn btn-secondary" @click="${() => this.navigateTo('/settings')}">
               Later
@@ -513,35 +543,63 @@ export class Premium extends LitElement {
           <div class="faq-item">
             <div class="faq-question">Is this a subscription?</div>
             <div class="faq-answer">
-              No! Premium is a one-time purchase of $5.99. You keep it forever.
+              No! Premium is a one-time purchase of $5.99. You keep it forever. There are no monthly or yearly fees.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">How much does the base app cost?</div>
+            <div class="faq-answer">
+              The base app is $19.99 (one-time purchase). Premium upgrade is an additional $5.99 for a total of $25.98.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">Why is it more affordable than other AAC apps?</div>
+            <div class="faq-answer">
+              Professional AAC software costs $99-$300+. We believe quality communication tools should be accessible to everyone. Our pricing reflects this mission.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">Can I upgrade from free to premium?</div>
+            <div class="faq-answer">
+              Yes! You can upgrade anytime by clicking the "Upgrade to Premium" button in Settings or visiting this page.
             </div>
           </div>
 
           <div class="faq-item">
             <div class="faq-question">Can I get a refund?</div>
             <div class="faq-answer">
-              Yes! You have 48 hours to request a refund if you're not satisfied.
+              Yes! You have 48 hours after purchase to request a refund if you're not satisfied. Visit your app store's account settings to request a refund.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question">Is there a family or group discount?</div>
+            <div class="faq-answer">
+              Contact us at dallas8000@gmail.com for bulk licensing, family plans, or institutional pricing.
             </div>
           </div>
 
           <div class="faq-item">
             <div class="faq-question">Will my data be safe?</div>
             <div class="faq-answer">
-              All data stays on your device. We use encrypted cloud storage (optional).
+              All data stays on your device by default. We never track users. Optional cloud backup is encrypted and secure.
             </div>
           </div>
 
           <div class="faq-item">
-            <div class="faq-question">Do you offer family pricing?</div>
+            <div class="faq-question">What if I have more questions about payment?</div>
             <div class="faq-answer">
-              Contact us at support@caydenjoy.com for bulk licensing and family plans.
+              Email us at dallas8000@gmail.com with any payment or upgrade questions. We're here to help!
             </div>
           </div>
 
           <div class="faq-item">
             <div class="faq-question">What about accessibility?</div>
             <div class="faq-answer">
-              CaydenJoy is built for accessibility. Custom images work with all assistive technologies.
+              CaydenJoy is built for accessibility. All features including premium features work with all assistive technologies.
             </div>
           </div>
         </div>

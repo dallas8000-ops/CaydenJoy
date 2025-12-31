@@ -7,6 +7,8 @@ import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
 import { styles } from '../styles/shared-styles';
+import '../components/header';
+import '../components/footer';
 
 @customElement('app-home')
 export class AppHome extends LitElement {
