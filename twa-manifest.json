@@ -9,9 +9,9 @@
   "backgroundColor": "#F8F9FA",
   "enableNotifications": true,
   "startUrl": "/CaydenJoy/",
-  "iconUrl": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/512x512.png",
-  "maskableIconUrl": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/512x512.png",
-  "monochromeIconUrl": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/512x512.png",
+  "iconUrl": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/CaydenJoy.png",
+  "maskableIconUrl": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/CaydenJoy.png",
+  "monochromeIconUrl": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/CaydenJoy.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",

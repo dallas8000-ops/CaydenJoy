@@ -8,9 +8,16 @@
   "theme_color": "#6C5CE7",
   "icons": [
     {
-      "src": "assets/icons/512x512.png",
+      "src": "assets/icons/CaydenJoy.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/CaydenJoy.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
