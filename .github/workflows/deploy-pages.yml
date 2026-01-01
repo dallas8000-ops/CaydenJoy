@@ -28,7 +28,9 @@ jobs:
         run: npm install
 
       - name: Build PWA
-        run: npm run build -- --base=/CaydenJoy/
+        run: npm run build
+        env:
+          VITE_BASE: /CaydenJoy/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
