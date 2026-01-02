@@ -1,5 +1,5 @@
 {
-  "packageId": "com.caydendev.caydenjoypwa",
+  "packageId": "io.github.dallas8000_ops.twa",
   "host": "dallas8000-ops.github.io",
   "name": "CaydenJoy",
   "launcherName": "CaydenJoy",
@@ -14,11 +14,11 @@
   "monochromeIconUrl": "https://dallas8000-ops.github.io/CaydenJoy/assets/icons/CaydenJoy.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "./android.keystore",
-    "alias": "android"
+    "path": "./new_release.keystore",
+    "alias": "release-key"
   },
-  "appVersionName": "1.0.0",
-  "appVersionCode": 1,
+  "appVersionName": "1.0.1",
+  "appVersionCode": 2,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://dallas8000-ops.github.io/CaydenJoy/manifest.json",

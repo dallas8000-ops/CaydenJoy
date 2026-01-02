@@ -17,6 +17,7 @@
   "dependencies": {
     "@shoelace-style/shoelace": "^2.18.0",
     "@thepassle/app-tools": "^0.9.12",
+    "expo": "^54.0.30",
     "lit": "^3.2.1",
     "urlpattern-polyfill": "^10.0.0",
     "workbox-build": "^7.3.0",
@@ -25,8 +26,8 @@
   },
   "devDependencies": {
     "typescript": "^5.6.3",
-    "vite": "^5.4.11",
-    "vite-plugin-pwa": "^0.20.5"
+    "vite": "^7.3.0",
+    "vite-plugin-pwa": "^1.2.0"
   },
   "prettier": {
     "tabWidth": 2,
