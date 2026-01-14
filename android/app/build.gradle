@@ -4,6 +4,17 @@ android {
     namespace = "io.github.dallas8000_ops.caydenjoy"
     compileSdk = rootProject.ext.compileSdkVersion
     buildToolsVersion = rootProject.ext.buildToolsVersion
+    
+    signingConfigs {
+        release {
+            // NOTE: Update these with your actual keystore information
+            storeFile file("caydenjoy.keystore")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android"
+            keyAlias System.getenv("KEY_ALIAS") ?: "caydenjoy"
+            keyPassword System.getenv("KEY_PASSWORD") ?: "android"
+        }
+    }
+    
     defaultConfig {
         applicationId "io.github.dallas8000_ops.caydenjoy"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -25,15 +36,6 @@ android {
         }
         debug {
             debuggable true
-        }
-    }
-    signingConfigs {
-        release {
-            // NOTE: Update these with your actual keystore information
-            storeFile file("caydenjoy.keystore")
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android"
-            keyAlias System.getenv("KEY_ALIAS") ?: "caydenjoy"
-            keyPassword System.getenv("KEY_PASSWORD") ?: "android"
         }
     }
 }
