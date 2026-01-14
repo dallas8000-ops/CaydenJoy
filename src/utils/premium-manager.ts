@@ -1,7 +1,9 @@
 /**
  * Premium Feature Manager
- * Handles in-app purchase status and premium features
+ * Handles premium feature access control based on license status
  */
+
+import { LicenseManager } from './license-manager.js';
 
 export interface PremiumStatus {
   isPremium: boolean;
@@ -10,14 +12,16 @@ export interface PremiumStatus {
     customImages: boolean;
     voiceCustomization: boolean;
     cloudBackup: boolean;
+    additionalTabs: boolean;
   };
 }
 
 const STORAGE_KEY = 'caydenjoy_premium_status';
-const PREMIUM_FEATURE_KEY = 'caydenjoy_premium_unlocked';
+const DEV_MODE_ENABLED = (import.meta as any).env.VITE_DEV_MODE === 'true';
 
 export class PremiumManager {
   private static instance: PremiumManager;
+  private licenseManager = LicenseManager.getInstance();
 
   private constructor() {
     this.loadStatus();
@@ -35,28 +39,50 @@ export class PremiumManager {
     features: {
       customImages: false,
       voiceCustomization: false,
-      cloudBackup: false
+      cloudBackup: false,
+      additionalTabs: false
     }
   };
 
   private loadStatus(): void {
     try {
+      // Check if upgraded via license code
+      if (this.licenseManager.isUpgraded()) {
+        console.log('[LICENSE] App upgraded via license code');
+        this.status.isPremium = true;
+        this.status.features.customImages = true;
+        this.status.features.voiceCustomization = true;
+        this.status.features.cloudBackup = true;
+        this.status.features.additionalTabs = true;
+        return;
+      }
+
+      // Development mode: automatically unlock all premium features
+      if (DEV_MODE_ENABLED) {
+        console.log('[DEV MODE] Premium features automatically unlocked');
+        this.status.isPremium = true;
+        this.status.features.customImages = true;
+        this.status.features.voiceCustomization = true;
+        this.status.features.cloudBackup = true;
+        this.status.features.additionalTabs = true;
+        return;
+      }
+
+      // Default: no premium features
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         this.status = JSON.parse(stored);
-      } else {
-        // Check if premium was unlocked (for testing/development)
-        const unlocked = localStorage.getItem(PREMIUM_FEATURE_KEY);
-        if (unlocked === 'true') {
-          this.status.isPremium = true;
-          this.status.features.customImages = true;
-          this.status.features.voiceCustomization = true;
-          this.status.features.cloudBackup = true;
-        }
       }
     } catch (e) {
       console.error('Error loading premium status:', e);
     }
+  }
+
+  /**
+   * Refresh premium status (call after license verification)
+   */
+  refreshStatus(): void {
+    this.loadStatus();
   }
 
   getStatus(): PremiumStatus {
@@ -83,6 +109,10 @@ export class PremiumManager {
     return this.hasFeature('cloudBackup');
   }
 
+  canAddAdditionalTabs(): boolean {
+    return this.hasFeature('additionalTabs');
+  }
+
   // Simulate purchase (in real app, this would be handled by Google Play Billing)
   simulatePremiumPurchase(): void {
     this.status.isPremium = true;
@@ -90,6 +120,7 @@ export class PremiumManager {
     this.status.features.customImages = true;
     this.status.features.voiceCustomization = true;
     this.status.features.cloudBackup = true;
+    this.status.features.additionalTabs = true;
     this.saveStatus();
   }
 
@@ -103,19 +134,22 @@ export class PremiumManager {
 
   // For development/testing
   unlockPremium(): void {
-    localStorage.setItem(PREMIUM_FEATURE_KEY, 'true');
-    this.simulatePremiumPurchase();
+    this.status.isPremium = true;
+    this.status.features.customImages = true;
+    this.status.features.voiceCustomization = true;
+    this.status.features.cloudBackup = true;
+    this.status.features.additionalTabs = true;
   }
 
   resetPremium(): void {
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(PREMIUM_FEATURE_KEY);
     this.status = {
       isPremium: false,
       features: {
         customImages: false,
         voiceCustomization: false,
-        cloudBackup: false
+        cloudBackup: false,
+        additionalTabs: false
       }
     };
   }

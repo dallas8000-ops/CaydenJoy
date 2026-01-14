@@ -15,5 +15,6 @@
   "status_bar_color": "#6C5CE7",
   "enable_notifications": true,
   "splash_padding_percentage": 10,
-  "android_sdk_path": "C:\\Android\\sdk"
+  "android_sdk_path": "C:\\Android\\sdk",
+  "jdk_path": "C:\\Program Files\\Android\\Android Studio\\jbr"
 }

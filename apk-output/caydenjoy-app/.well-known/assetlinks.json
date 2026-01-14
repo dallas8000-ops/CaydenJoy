@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.dallas8000_ops.twa",
+      "sha256_cert_fingerprints": [
+        "B1:82:D7:DE:AF:2A:B1:91:62:88:8D:7A:E1:9B:A2:1A:AB:BD:CE:2B:0A:16:01:33:21:B1:41:9B:D9:94:23:B4"
+      ]
+    }
+  }
+]

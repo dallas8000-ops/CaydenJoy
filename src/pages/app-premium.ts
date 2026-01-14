@@ -475,11 +475,20 @@ export class Premium extends LitElement {
                   Backup and sync your custom images and settings across devices
                 </div>
               </div>
+
+              <div class="feature-card">
+                <div class="feature-icon">📑</div>
+                <div class="feature-title">Additional Tabs</div>
+                <div class="feature-description">
+                  Create multiple custom tabs for Communication, Foods, Colors, Numbers, Places, and Family Puzzle
+                </div>
+              </div>
             </div>
 
             <ul class="benefits-list">
               <li>Unlimited custom image uploads</li>
               <li>Organize images by category</li>
+              <li>Create multiple custom tabs across 6 different learning features</li>
               <li>Priority support</li>
               <li>No ads or tracking</li>
               <li>One-time purchase - yours forever</li>

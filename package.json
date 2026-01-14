@@ -9,12 +9,17 @@
     "dev-task": "vite",
     "deploy": "npx @azure/static-web-apps-cli login --no-use-keychain && npx @azure/static-web-apps-cli deploy",
     "build": "tsc && vite build",
+    "build-tablet": "tsc && cross-env VITE_DEV_MODE=true vite build",
+    "build-tablet-apk": "tsc && cross-env VITE_DEV_MODE=true vite build && echo APK-ready build complete. All premium features unlocked.",
     "start": "npm run dev",
     "start-remote": "vite --host"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
     "@shoelace-style/shoelace": "^2.18.0",
     "@thepassle/app-tools": "^0.9.12",
     "expo": "^54.0.30",
@@ -25,6 +30,7 @@
     "workbox-precaching": "^7.3.0"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "typescript": "^5.6.3",
     "vite": "^7.3.0",
     "vite-plugin-pwa": "^1.2.0"

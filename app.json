@@ -23,9 +23,7 @@
       "targetSdkVersion": 34
     },
     "extra": {
-      "eas": {
-        "projectId": "ce51286e"
-      }
+      "eas": {}
     }
   }
 }

@@ -1,0 +1,33 @@
+{
+  "name": "CaydenJoy",
+  "short_name": "CaydenJoy",
+  "description": "Communication app for nonverbal individuals",
+  "start_url": "./",
+  "scope": "/CaydenJoy/",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#6C5CE7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icons/CaydenJoy.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/CaydenJoy.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "accessibility"],
+  "screenshots": [
+    {
+      "src": "assets/screenshots/screen.png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    }
+  ]
+}

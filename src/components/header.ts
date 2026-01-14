@@ -96,8 +96,10 @@ export class AppHeader extends LitElement {
           <a href="${resolveRouterPath('family-puzzle')}">Puzzle</a>
           <a href="${resolveRouterPath('home-enhanced')}">Quick</a>
           <a href="${resolveRouterPath('custom-images')}">📸</a>
+          <a href="${resolveRouterPath('upgrade')}">🔓</a>
           <a href="${resolveRouterPath('premium')}">👑</a>
-          <a href="${resolveRouterPath('settings')}">⚙</a>
+          <a href="${resolveRouterPath('admin')}">⚙️</a>
+          <a href="${resolveRouterPath('settings')}">🛠️</a>
         </nav>
       </header>
     `;
