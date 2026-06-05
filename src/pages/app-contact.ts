@@ -8,6 +8,7 @@ import '@shoelace-style/shoelace/dist/components/input/input.js';
 import '@shoelace-style/shoelace/dist/components/textarea/textarea.js';
 
 import { styles } from '../styles/shared-styles';
+import '../components/header';
 
 @customElement('app-contact')
 export class AppContact extends LitElement {
@@ -16,17 +17,38 @@ export class AppContact extends LitElement {
   @property() message = '';
   @property() submitted = false;
 
+  private readonly supportEmail = 'dallas8000@gmail.com';
+
   static styles = [
     styles,
     css`
       main {
         padding: 20px;
-        max-width: 600px;
+        max-width: 760px;
         margin: 0 auto;
+        color: #172033;
+      }
+
+      h1,
+      h2 {
+        color: #172033;
+      }
+
+      main > p {
+        color: #334155;
+        line-height: 1.6;
       }
 
       sl-card {
         margin-bottom: 24px;
+      }
+
+      sl-card::part(base) {
+        background: #ffffff;
+        border: 1px solid #d9e2ef;
+        border-radius: 10px;
+        color: #172033;
+        box-shadow: 0 8px 20px rgba(31, 41, 55, 0.08);
       }
 
       form {
@@ -47,44 +69,47 @@ export class AppContact extends LitElement {
       }
 
       label {
-        font-weight: 600;
-        color: #6C5CE7;
+        font-weight: 700;
+        color: #243b6b;
       }
 
       .success-message {
-        background-color: #00B894;
+        background-color: #047857;
         color: white;
         padding: 16px;
-        border-radius: 4px;
+        border-radius: 6px;
         margin-bottom: 16px;
       }
 
       .contact-info {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 16px;
         margin-top: 24px;
       }
 
       .info-box {
-        background: linear-gradient(135deg, #6C5CE7 0%, #5F3DC4 100%);
-        color: white;
+        background: #ffffff;
+        border: 1px solid #d9e2ef;
+        color: #172033;
         padding: 16px;
-        border-radius: 8px;
-        text-align: center;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(31, 41, 55, 0.08);
       }
 
       .info-box h3 {
         margin: 0 0 8px 0;
-        color: white;
+        color: #243b6b;
       }
 
       .info-box p {
-        margin: 0;
-        opacity: 0.9;
+        margin: 0 0 14px 0;
+        color: #526070;
+        line-height: 1.5;
       }
 
-      button {
+      .info-box sl-button,
+      form sl-button {
         width: 100%;
       }
     `
@@ -92,22 +117,12 @@ export class AppContact extends LitElement {
 
   handleSubmit(e: Event) {
     e.preventDefault();
-    
-    // Validate form
+
     if (!this.name || !this.email || !this.message) {
       alert('Please fill in all fields');
       return;
     }
 
-    // Here you would normally send data to a backend
-    console.log('Form submitted:', {
-      name: this.name,
-      email: this.email,
-      message: this.message,
-      timestamp: new Date().toISOString()
-    });
-
-    // Store in localStorage as backup
     localStorage.setItem('lastContact', JSON.stringify({
       name: this.name,
       email: this.email,
@@ -115,13 +130,18 @@ export class AppContact extends LitElement {
       timestamp: new Date().toISOString()
     }));
 
+    const subject = encodeURIComponent(`CaydenJoy support request from ${this.name}`);
+    const body = encodeURIComponent(
+      `Name: ${this.name}\nEmail: ${this.email}\n\nMessage:\n${this.message}`
+    );
+
     this.submitted = true;
+    window.location.href = `mailto:${this.supportEmail}?subject=${subject}&body=${body}`;
     this.resetForm();
 
-    // Hide success message after 3 seconds
     setTimeout(() => {
       this.submitted = false;
-    }, 3000);
+    }, 5000);
   }
 
   resetForm() {
@@ -132,21 +152,24 @@ export class AppContact extends LitElement {
 
   render() {
     return html`
-      <app-header></app-header>
+      <app-header title="Contact" enableBack></app-header>
 
       <main>
-        <h1>Contact Us</h1>
-        <p>Have questions or feedback? We'd love to hear from you!</p>
+        <h1>Contact Support</h1>
+        <p>
+          Send a support email, save feedback inside the app, or get help with premium
+          upgrades and one-time APK keys.
+        </p>
 
         ${this.submitted ? html`
           <div class="success-message">
-            ✓ Thank you! Your message has been received. We'll get back to you soon.
+            Your message was saved locally and opened as an email draft.
           </div>
         ` : ''}
 
         <sl-card>
           <div slot="header">
-            <h2>Send us a Message</h2>
+            <h2>Send an Email</h2>
           </div>
 
           <form @submit=${this.handleSubmit}>
@@ -178,7 +201,7 @@ export class AppContact extends LitElement {
               <label for="message">Message</label>
               <sl-textarea
                 id="message"
-                placeholder="Your message here..."
+                placeholder="Tell us what you need help with."
                 rows="6"
                 .value=${this.message}
                 @sl-input=${(e: any) => this.message = e.target.value}
@@ -186,28 +209,42 @@ export class AppContact extends LitElement {
               ></sl-textarea>
             </div>
 
-            <sl-button type="submit" variant="primary">Send Message</sl-button>
+            <sl-button type="submit" variant="primary">Open Email Draft</sl-button>
             <sl-button type="reset" variant="default" @click=${() => this.resetForm()}>Clear</sl-button>
           </form>
         </sl-card>
 
         <div class="contact-info">
           <div class="info-box">
-            <h3>📧 Email</h3>
-            <p>support@caydenjo.dev</p>
+            <h3>Email Support</h3>
+            <p>Direct support for account, purchase, app setup, or family-use questions.</p>
+            <sl-button
+              href="mailto:${this.supportEmail}?subject=CaydenJoy%20support"
+              variant="primary"
+            >
+              Email Support
+            </sl-button>
           </div>
+
           <div class="info-box">
-            <h3>💬 Discord</h3>
-            <p>Join our community</p>
+            <h3>Feedback & Wishlist</h3>
+            <p>Save improvement ideas, feature requests, success stories, or issues.</p>
+            <sl-button href="${resolveRouterPath('feedback')}" variant="primary">
+              Open Feedback
+            </sl-button>
           </div>
+
           <div class="info-box">
-            <h3>🐦 Twitter</h3>
-            <p>@CaydenJoyApp</p>
+            <h3>Upgrade Help</h3>
+            <p>View premium tiers or redeem a one-time APK upgrade key.</p>
+            <sl-button href="${resolveRouterPath('premium')}" variant="primary">
+              View Premium
+            </sl-button>
           </div>
         </div>
 
         <div style="text-align: center; margin-top: 48px;">
-          <sl-button href="${resolveRouterPath()}" variant="primary">Back to Home</sl-button>
+          <sl-button href="${resolveRouterPath('home')}" variant="primary">Back to Home</sl-button>
         </div>
       </main>
     `;

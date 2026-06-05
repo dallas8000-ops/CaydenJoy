@@ -1,66 +1,88 @@
 import { css } from 'lit';
 
-// these styles can be imported from any component
-// for an example of how to use this, check /pages/about-about.ts
 export const styles = css`
   main {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f4f7fb;
     min-height: 100vh;
-    padding: 20px;
+    padding: 24px;
   }
 
-  main h2 {
-    color: white;
+  main > h2 {
+    color: #172033;
     text-align: center;
     font-size: 32px;
     margin: 20px 0;
   }
 
   sl-card {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     margin: 20px auto;
   }
 
+  sl-card::part(base) {
+    background: #ffffff;
+    border: 1px solid #d9e2ef;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(31, 41, 55, 0.12);
+    color: #172033;
+  }
+
+  sl-card::part(body) {
+    color: #172033;
+  }
+
   sl-card h2 {
-    color: #667eea;
+    color: #243b6b;
     font-size: 24px;
     margin-top: 0;
   }
 
-  sl-card h3 {
-    color: #764ba2;
-    font-size: 18px;
-    margin-top: 20px;
+  sl-card h3,
+  sl-card h4 {
+    color: #334f85;
   }
 
-  sl-card p {
-    color: #333;
-    line-height: 1.6;
+  sl-card p,
+  sl-card li {
+    color: #263241;
+    line-height: 1.65;
     font-size: 16px;
   }
 
   sl-card ul {
-    color: #333;
-    line-height: 1.8;
+    padding-left: 22px;
   }
 
-  sl-card ul li {
+  sl-card li {
     margin: 10px 0;
   }
 
   sl-card a {
-    color: #667eea;
+    color: #284fbd;
+    font-weight: 700;
     text-decoration: none;
-    font-weight: bold;
   }
 
-  sl-card a:hover {
+  sl-card a:hover,
+  sl-card a:focus-visible {
     text-decoration: underline;
   }
 
-  @media(min-width: 1000px) {
+  .note {
+    background: #eef5ff;
+    border-left: 4px solid #4263eb;
+    color: #172033;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 15px 0;
+  }
+
+  .closing {
+    color: #526070;
+    font-style: italic;
+    margin-top: 20px;
+  }
+
+  @media (min-width: 1000px) {
     sl-card {
       max-width: 70vw;
     }

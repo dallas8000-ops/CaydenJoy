@@ -30,6 +30,10 @@ import './pages/app-upgrade.js';
 import './pages/app-admin.js';
 import './pages/app-progress.js';
 import './pages/app-feedback.js';
+import './pages/app-documentation.js';
+import './pages/app-privacy.js';
+import './pages/app-terms.js';
+import './pages/app-license.js';
 import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
@@ -127,6 +131,26 @@ export const router = new Router({
         render: () => html`<app-feedback></app-feedback>`
       },
       {
+        path: resolveRouterPath('documentation'),
+        title: 'Documentation',
+        render: () => html`<app-documentation></app-documentation>`
+      },
+      {
+        path: resolveRouterPath('privacy'),
+        title: 'Privacy Policy',
+        render: () => html`<app-privacy></app-privacy>`
+      },
+      {
+        path: resolveRouterPath('terms'),
+        title: 'Terms of Service',
+        render: () => html`<app-terms></app-terms>`
+      },
+      {
+        path: resolveRouterPath('license'),
+        title: 'License',
+        render: () => html`<app-license></app-license>`
+      },
+      {
         path: resolveRouterPath('about'),
         title: 'About',
         plugins: [
@@ -138,7 +162,7 @@ export const router = new Router({
   });
 
   // This function will resolve a path with whatever Base URL was passed to the vite build process.
-  // Use of this function throughout the starter is not required, but highly recommended, especially if you plan to use GitHub Pages to deploy.
+  // Use of this function throughout the starter is not required, but highly recommended for hosted deployments.
   // If no arg is passed to this function, it will return the base URL.
 
   export function resolveRouterPath(unresolvedPath?: string) {

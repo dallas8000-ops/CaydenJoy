@@ -6,7 +6,7 @@ import { resolveRouterPath } from '../router';
 export class AppFooter extends LitElement {
   static styles = css`
     footer {
-      background-color: #2C3E50;
+      background-color: #26384a;
       color: white;
       padding: 40px 20px;
       margin-top: 60px;
@@ -25,7 +25,7 @@ export class AppFooter extends LitElement {
     }
 
     .footer-section h3 {
-      color: #6C5CE7;
+      color: #8f84ff;
       margin-top: 0;
       margin-bottom: 16px;
       font-size: 16px;
@@ -38,22 +38,26 @@ export class AppFooter extends LitElement {
     }
 
     .footer-section li {
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .footer-section a {
-      color: #FFFFFF;
+      color: #ffffff;
       text-decoration: none;
-      opacity: 0.8;
-      transition: opacity 0.3s;
+      opacity: 0.84;
+      transition: opacity 0.2s, color 0.2s;
     }
 
-    .footer-section a:hover {
+    .footer-section a:hover,
+    .footer-section a:focus-visible {
+      color: #ffffff;
       opacity: 1;
+      text-decoration: underline;
+      text-underline-offset: 4px;
     }
 
     .footer-bottom {
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
       padding-top: 24px;
       display: flex;
       justify-content: space-between;
@@ -62,40 +66,50 @@ export class AppFooter extends LitElement {
       gap: 16px;
     }
 
-    .social-links {
+    .quick-links {
       display: flex;
-      gap: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .social-links a {
-      display: inline-block;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background-color: rgba(108, 92, 231, 0.2);
+    .quick-links a {
+      min-width: 88px;
+      height: 36px;
+      border-radius: 6px;
+      background-color: rgba(143, 132, 255, 0.18);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background-color 0.3s;
+      padding: 0 12px;
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background-color 0.2s;
     }
 
-    .social-links a:hover {
-      background-color: #6C5CE7;
+    .quick-links a:hover,
+    .quick-links a:focus-visible {
+      background-color: #6c5ce7;
     }
 
     .copyright {
-      opacity: 0.7;
+      opacity: 0.76;
       font-size: 14px;
     }
 
     @media (max-width: 640px) {
       .footer-bottom {
         flex-direction: column;
-        text-align: center;
+        align-items: flex-start;
       }
 
-      .social-links {
-        justify-content: center;
+      .quick-links {
+        width: 100%;
+      }
+
+      .quick-links a {
+        flex: 1;
       }
     }
   `;
@@ -108,9 +122,10 @@ export class AppFooter extends LitElement {
             <div class="footer-section">
               <h3>Product</h3>
               <ul>
-                <li><a href="${resolveRouterPath()}">Home</a></li>
-                <li><a href="${resolveRouterPath('services')}">Services</a></li>
-                <li><a href="${resolveRouterPath('about')}">About</a></li>
+                <li><a href="${resolveRouterPath('home')}">Home Dashboard</a></li>
+                <li><a href="${resolveRouterPath()}">Communication Board</a></li>
+                <li><a href="${resolveRouterPath('family-puzzle')}">Activity Sessions</a></li>
+                <li><a href="${resolveRouterPath('premium')}">Premium Tiers</a></li>
               </ul>
             </div>
 
@@ -118,38 +133,39 @@ export class AppFooter extends LitElement {
               <h3>Support</h3>
               <ul>
                 <li><a href="${resolveRouterPath('faq')}">FAQ</a></li>
-                <li><a href="${resolveRouterPath('contact')}">Contact</a></li>
-                <li><a href="#">Documentation</a></li>
+                <li><a href="${resolveRouterPath('contact')}">Contact Support</a></li>
+                <li><a href="${resolveRouterPath('feedback')}">Feedback & Wishlist</a></li>
+                <li><a href="${resolveRouterPath('documentation')}">Documentation</a></li>
               </ul>
             </div>
 
             <div class="footer-section">
               <h3>Company</h3>
               <ul>
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms of Service</a></li>
-                <li><a href="#">License</a></li>
+                <li><a href="${resolveRouterPath('about')}">About CaydenJoy</a></li>
+                <li><a href="${resolveRouterPath('privacy')}">Privacy Policy</a></li>
+                <li><a href="${resolveRouterPath('terms')}">Terms of Service</a></li>
+                <li><a href="${resolveRouterPath('license')}">License</a></li>
               </ul>
             </div>
 
             <div class="footer-section">
               <h3>Resources</h3>
               <ul>
-                <li><a href="https://github.com/dallas8000-ops/CaydenJoy" target="_blank">GitHub</a></li>
-                <li><a href="#">Blog</a></li>
-                <li><a href="#">Community</a></li>
+                <li><a href="${resolveRouterPath('custom-images')}">Custom Photos</a></li>
+                <li><a href="${resolveRouterPath('progress')}">Progress Dashboard</a></li>
+                <li><a href="${resolveRouterPath('upgrade')}">APK Upgrade Keys</a></li>
               </ul>
             </div>
           </div>
 
           <div class="footer-bottom">
             <div class="copyright">
-              © ${new Date().getFullYear()} CaydenJoy. All rights reserved.
+              (c) ${new Date().getFullYear()} CaydenJoy. All rights reserved.
             </div>
-            <div class="social-links">
-              <a href="https://twitter.com" target="_blank" title="Twitter">𝕏</a>
-              <a href="https://github.com" target="_blank" title="GitHub">⚙</a>
-              <a href="https://discord.com" target="_blank" title="Discord">💬</a>
+            <div class="quick-links">
+              <a href="${resolveRouterPath('feedback')}">Feedback</a>
+              <a href="${resolveRouterPath('contact')}">Contact</a>
             </div>
           </div>
         </div>
