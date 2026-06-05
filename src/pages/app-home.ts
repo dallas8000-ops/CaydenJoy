@@ -12,7 +12,7 @@ export class AppHome extends LitElement {
   @property() message = 'CaydenJoy';
   @property() isOnline = navigator.onLine;
 
-  static styles = css`
+  static override readonly styles = css`
     :host {
       display: block;
       min-height: 100vh;
@@ -142,21 +142,27 @@ export class AppHome extends LitElement {
         font-size: 1.75rem;
       }
     }
+
+    @media (max-width: 960px) {
+      .urgent-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
   `;
 
   firstUpdated() {
-    window.addEventListener('online', () => {
+    globalThis.addEventListener('online', () => {
       this.isOnline = true;
     });
-    window.addEventListener('offline', () => {
+    globalThis.addEventListener('offline', () => {
       this.isOnline = false;
     });
   }
 
   private speak(text: string) {
-    if ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined') {
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    if ('speechSynthesis' in globalThis && typeof SpeechSynthesisUtterance !== 'undefined') {
+      globalThis.speechSynthesis.cancel();
+      globalThis.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
     }
   }
 
@@ -205,6 +211,17 @@ export class AppHome extends LitElement {
             <div class="feature-copy">
               <div class="feature-title">Communication Board</div>
               <div class="feature-text">Large request buttons with speech for daily needs and sensory support.</div>
+            </div>
+          </a>
+
+          <a class="feature" href=${resolveRouterPath('download')}>
+            <img
+              src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=500&q=80"
+              alt="Android app download"
+            />
+            <div class="feature-copy">
+              <div class="feature-title">Download Android App</div>
+              <div class="feature-text">Open the buyer download page for the CaydenJoy APK and install instructions.</div>
             </div>
           </a>
 

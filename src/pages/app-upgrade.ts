@@ -2,6 +2,9 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { LicenseManager } from '../utils/license-manager.js';
 import { PremiumManager } from '../utils/premium-manager.js';
+import { resolveRouterPath } from '../router';
+
+import '@shoelace-style/shoelace/dist/components/button/button.js';
 
 @customElement('app-upgrade')
 export class AppUpgrade extends LitElement {
@@ -10,15 +13,15 @@ export class AppUpgrade extends LitElement {
   @state() messageType: 'success' | 'error' | '' = '';
   @state() isUpgraded: boolean = false;
 
-  private licenseManager = LicenseManager.getInstance();
-  private premiumManager = PremiumManager.getInstance();
+  private readonly licenseManager = LicenseManager.getInstance();
+  private readonly premiumManager = PremiumManager.getInstance();
 
   connectedCallback() {
     super.connectedCallback();
     this.isUpgraded = this.licenseManager.isUpgraded();
   }
 
-  static styles = css`
+  static override readonly styles = css`
     :host {
       display: block;
       padding: 2rem;
@@ -210,6 +213,32 @@ export class AppUpgrade extends LitElement {
       line-height: 1.6;
     }
 
+    .download-cta {
+      background: #eef4ff;
+      border: 1px solid #cfdcf5;
+      padding: 1.25rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .download-cta h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.15rem;
+      color: #243041;
+    }
+
+    .download-cta p {
+      margin: 0 0 0.9rem 0;
+      color: #4d5e72;
+      line-height: 1.5;
+    }
+
+    .download-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
     .code-instructions strong {
       color: #6C5CE7;
     }
@@ -234,7 +263,14 @@ export class AppUpgrade extends LitElement {
       this.premiumManager.refreshStatus();
       this.isUpgraded = true;
       const tier = this.licenseManager.getTier();
-      const tierLabel = tier === 'family' ? 'Family Photos' : tier === 'learning' ? 'Learning Plus' : 'All Access';
+      let tierLabel = 'All Access';
+
+      if (tier === 'family') {
+        tierLabel = 'Family Photos';
+      } else if (tier === 'learning') {
+        tierLabel = 'Learning Plus';
+      }
+
       this.message = `Upgrade successful! ${tierLabel} is now unlocked.`;
       this.messageType = 'success';
       this.upgradeCode = '';
@@ -298,6 +334,21 @@ export class AppUpgrade extends LitElement {
             <li>All Access key - All current premium features</li>
             <li>Keys redeem once on this installed device</li>
           </ul>
+        </div>
+
+        <div class="download-cta">
+          <h2>Need the Android app file?</h2>
+          <p>
+            Buyers can download the APK from the dedicated download page before entering their upgrade key.
+          </p>
+          <div class="download-actions">
+            <sl-button variant="primary" href=${resolveRouterPath('download')}>
+              Open Download Page
+            </sl-button>
+            <sl-button variant="default" href=${resolveRouterPath('contact')}>
+              Send to Buyer
+            </sl-button>
+          </div>
         </div>
 
         ${this.message ? html`

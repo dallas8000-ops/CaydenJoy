@@ -1,6 +1,5 @@
-import { LitElement, css } from 'lit';
+import { LitElement, css, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { html } from 'lit';
 
 import './pages/app-home';
 import './components/header';
@@ -12,21 +11,24 @@ import { AccessibilityManager } from './utils/accessibility-manager';
 @customElement('app-index')
 export class AppIndex extends LitElement {
   @state() emergencyMode = false;
-  private accessibilityManager = AccessibilityManager.getInstance();
+  private readonly accessibilityManager = AccessibilityManager.getInstance();
 
-  static styles = css`
+  static override readonly styles = css`
     :host {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      --app-shell-padding-x: 16px;
+      --app-shell-padding-top: 88px;
+      --app-shell-padding-bottom: 100px;
     }
 
     main {
       flex: 1;
-      padding-left: 16px;
-      padding-right: 16px;
-      padding-bottom: 100px;
-      padding-top: 80px;
+      padding-left: var(--app-shell-padding-x);
+      padding-right: var(--app-shell-padding-x);
+      padding-bottom: var(--app-shell-padding-bottom);
+      padding-top: var(--app-shell-padding-top);
     }
 
     .emergency-bar {
@@ -71,12 +73,40 @@ export class AppIndex extends LitElement {
     .emergency-button:active {
       transform: scale(0.95);
     }
+
+    @media (max-width: 900px) {
+      :host {
+        --app-shell-padding-top: 112px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      :host {
+        --app-shell-padding-x: 12px;
+        --app-shell-padding-top: 128px;
+        --app-shell-padding-bottom: 112px;
+      }
+
+      .emergency-bar {
+        height: auto;
+        min-height: 60px;
+        padding: 0.75rem 0.875rem;
+        gap: 0.75rem;
+      }
+
+      .emergency-text {
+        font-size: 1rem;
+      }
+
+      .emergency-button {
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+      }
+    }
   `;
 
   firstUpdated() {
     // Initialize accessibility manager
-    this.accessibilityManager;
-
     router.addEventListener('route-changed', () => {
       if ("startViewTransition" in document) {
         (document as any).startViewTransition(() => this.requestUpdate());

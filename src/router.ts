@@ -9,9 +9,6 @@ if (!(globalThis as any).URLPattern) {
 import { Router } from '@thepassle/app-tools/router.js';
 import { lazy } from '@thepassle/app-tools/router/plugins/lazy.js';
 
-// @ts-ignore
-import { title } from '@thepassle/app-tools/router/plugins/title.js';
-
 import './pages/app-home.js';
 import './pages/app-services.js';
 import './pages/app-contact.js';
@@ -27,6 +24,7 @@ import './pages/app-places.js';
 import './pages/app-premium.js';
 import './pages/app-custom-images.js';
 import './pages/app-upgrade.js';
+import './pages/app-download.js';
 import './pages/app-admin.js';
 import './pages/app-progress.js';
 import './pages/app-feedback.js';
@@ -116,6 +114,11 @@ export const router = new Router({
         render: () => html`<app-upgrade></app-upgrade>`
       },
       {
+        path: resolveRouterPath('download'),
+        title: 'Download APK',
+        render: () => html`<app-download></app-download>`
+      },
+      {
         path: resolveRouterPath('admin'),
         title: 'Admin',
         render: () => html`<app-admin></app-admin>`
@@ -166,7 +169,7 @@ export const router = new Router({
   // If no arg is passed to this function, it will return the base URL.
 
   export function resolveRouterPath(unresolvedPath?: string) {
-    var resolvedPath = baseURL;
+      let resolvedPath = baseURL;
     if(unresolvedPath) {
       resolvedPath = resolvedPath + unresolvedPath;
     }

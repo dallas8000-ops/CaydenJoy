@@ -14,11 +14,13 @@ export class AppHeader extends LitElement {
 
   @property({ type: Boolean}) enableBack: boolean = false;
 
-  static styles = css`
+  static override readonly styles = css`
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
       background: linear-gradient(135deg, #6C5CE7 0%, #5F3DC4 100%);
       color: white;
       padding: 12px 20px;
@@ -44,6 +46,8 @@ export class AppHeader extends LitElement {
       display: flex;
       gap: 12px;
       align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     nav a {
@@ -73,6 +77,47 @@ export class AppHeader extends LitElement {
 
       nav a {
         color: initial;
+      }
+    }
+
+    @media (max-width: 900px) {
+      header {
+        align-items: flex-start;
+      }
+
+      nav {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+      }
+
+      nav a {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 10px 14px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      nav {
+        gap: 6px;
+      }
+
+      nav a {
+        padding: 5px 8px;
+        font-size: 12px;
+        border-radius: 999px;
+      }
+
+      #back-button-block {
+        width: 100%;
       }
     }
   `;

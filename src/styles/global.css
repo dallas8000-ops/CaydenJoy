@@ -79,6 +79,16 @@ html, body {
   height: 100%;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
 @media (prefers-color-scheme: dark) {
 
   html,

@@ -10,7 +10,7 @@ import '../components/header';
 
 @customElement('app-documentation')
 export class AppDocumentation extends LitElement {
-  static styles = [
+  static override readonly styles = [
     styles,
     css`
       main {
@@ -114,6 +114,15 @@ export class AppDocumentation extends LitElement {
               purchase. Keep generated keys in your private sales records.
             </p>
             <sl-button href="${resolveRouterPath('upgrade')}" variant="primary">Open Upgrade</sl-button>
+          </sl-card>
+
+          <sl-card>
+            <h2>Download And Install</h2>
+            <p>
+              Share one link with buyers so they can download CaydenJoy on Android,
+              then return to redeem their upgrade key.
+            </p>
+            <sl-button href="${resolveRouterPath('download')}" variant="primary">Open Download Page</sl-button>
           </sl-card>
         </div>
 

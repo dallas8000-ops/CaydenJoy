@@ -4,7 +4,7 @@ import { resolveRouterPath } from '../router';
 
 @customElement('app-footer')
 export class AppFooter extends LitElement {
-  static styles = css`
+  static override readonly styles = css`
     footer {
       background-color: #26384a;
       color: white;
@@ -19,7 +19,7 @@ export class AppFooter extends LitElement {
 
     .footer-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 32px;
       margin-bottom: 32px;
     }
@@ -99,6 +99,15 @@ export class AppFooter extends LitElement {
     }
 
     @media (max-width: 640px) {
+      footer {
+        padding: 28px 16px;
+        margin-top: 40px;
+      }
+
+      .footer-grid {
+        gap: 24px;
+      }
+
       .footer-bottom {
         flex-direction: column;
         align-items: flex-start;
@@ -110,6 +119,12 @@ export class AppFooter extends LitElement {
 
       .quick-links a {
         flex: 1;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .footer-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       }
     }
   `;
@@ -152,6 +167,7 @@ export class AppFooter extends LitElement {
             <div class="footer-section">
               <h3>Resources</h3>
               <ul>
+                <li><a href="${resolveRouterPath('download')}">Download Android APK</a></li>
                 <li><a href="${resolveRouterPath('custom-images')}">Custom Photos</a></li>
                 <li><a href="${resolveRouterPath('progress')}">Progress Dashboard</a></li>
                 <li><a href="${resolveRouterPath('upgrade')}">APK Upgrade Keys</a></li>
