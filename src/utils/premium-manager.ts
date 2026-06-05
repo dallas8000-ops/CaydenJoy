@@ -5,8 +5,11 @@
 
 import { LicenseManager } from './license-manager.js';
 
+export type PremiumTier = 'none' | 'family' | 'learning' | 'allAccess';
+
 export interface PremiumStatus {
   isPremium: boolean;
+  tier: PremiumTier;
   purchaseDate?: number;
   features: {
     customImages: boolean;
@@ -36,6 +39,7 @@ export class PremiumManager {
 
   private status: PremiumStatus = {
     isPremium: false,
+    tier: 'none',
     features: {
       customImages: false,
       voiceCustomization: false,
@@ -46,25 +50,29 @@ export class PremiumManager {
 
   private loadStatus(): void {
     try {
+      this.status = {
+        isPremium: false,
+        tier: 'none',
+        features: {
+          customImages: false,
+          voiceCustomization: false,
+          cloudBackup: false,
+          additionalTabs: false
+        }
+      };
+
       // Check if upgraded via license code
       if (this.licenseManager.isUpgraded()) {
         console.log('[LICENSE] App upgraded via license code');
-        this.status.isPremium = true;
-        this.status.features.customImages = true;
-        this.status.features.voiceCustomization = true;
-        this.status.features.cloudBackup = true;
-        this.status.features.additionalTabs = true;
+        const licenseTier = this.licenseManager.getTier();
+        this.status = this.createStatusForTier(licenseTier === 'none' ? 'allAccess' : licenseTier);
         return;
       }
 
       // Development mode: automatically unlock all premium features
       if (DEV_MODE_ENABLED) {
         console.log('[DEV MODE] Premium features automatically unlocked');
-        this.status.isPremium = true;
-        this.status.features.customImages = true;
-        this.status.features.voiceCustomization = true;
-        this.status.features.cloudBackup = true;
-        this.status.features.additionalTabs = true;
+        this.status = this.createStatusForTier('allAccess');
         return;
       }
 
@@ -87,6 +95,10 @@ export class PremiumManager {
 
   getStatus(): PremiumStatus {
     return { ...this.status };
+  }
+
+  getTier(): PremiumTier {
+    return this.status.tier ?? 'none';
   }
 
   isPremium(): boolean {
@@ -113,14 +125,42 @@ export class PremiumManager {
     return this.hasFeature('additionalTabs');
   }
 
+  private createStatusForTier(tier: PremiumTier): PremiumStatus {
+    const status: PremiumStatus = {
+      isPremium: tier !== 'none',
+      tier,
+      purchaseDate: tier === 'none' ? undefined : Date.now(),
+      features: {
+        customImages: false,
+        voiceCustomization: false,
+        cloudBackup: false,
+        additionalTabs: false
+      }
+    };
+
+    if (tier === 'family') {
+      status.features.customImages = true;
+    }
+
+    if (tier === 'learning') {
+      status.features.customImages = true;
+      status.features.cloudBackup = true;
+      status.features.additionalTabs = true;
+    }
+
+    if (tier === 'allAccess') {
+      status.features.customImages = true;
+      status.features.voiceCustomization = true;
+      status.features.cloudBackup = true;
+      status.features.additionalTabs = true;
+    }
+
+    return status;
+  }
+
   // Simulate purchase (in real app, this would be handled by Google Play Billing)
-  simulatePremiumPurchase(): void {
-    this.status.isPremium = true;
-    this.status.purchaseDate = Date.now();
-    this.status.features.customImages = true;
-    this.status.features.voiceCustomization = true;
-    this.status.features.cloudBackup = true;
-    this.status.features.additionalTabs = true;
+  simulatePremiumPurchase(tier: PremiumTier = 'allAccess'): void {
+    this.status = this.createStatusForTier(tier);
     this.saveStatus();
   }
 
@@ -134,17 +174,15 @@ export class PremiumManager {
 
   // For development/testing
   unlockPremium(): void {
-    this.status.isPremium = true;
-    this.status.features.customImages = true;
-    this.status.features.voiceCustomization = true;
-    this.status.features.cloudBackup = true;
-    this.status.features.additionalTabs = true;
+    this.status = this.createStatusForTier('allAccess');
+    this.saveStatus();
   }
 
   resetPremium(): void {
     localStorage.removeItem(STORAGE_KEY);
     this.status = {
       isPremium: false,
+      tier: 'none',
       features: {
         customImages: false,
         voiceCustomization: false,

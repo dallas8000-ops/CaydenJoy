@@ -4,12 +4,12 @@ android {
     namespace = "io.github.dallas8000_ops.caydenjoy"
     compileSdk = rootProject.ext.compileSdkVersion
     buildToolsVersion = rootProject.ext.buildToolsVersion
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    
+
     signingConfigs {
         release {
             // NOTE: Update these with your actual keystore information
@@ -19,13 +19,13 @@ android {
             keyPassword System.getenv("KEY_PASSWORD") ?: "android"
         }
     }
-    
+
     defaultConfig {
         applicationId "io.github.dallas8000_ops.caydenjoy"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

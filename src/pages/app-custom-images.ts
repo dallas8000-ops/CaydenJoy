@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager';
 import { CustomImagesManager, CustomImage } from '../utils/custom-images-manager';
+import { resolveRouterPath } from '../router';
 
 @customElement('app-custom-images')
 export class CustomImages extends LitElement {
@@ -369,6 +370,10 @@ export class CustomImages extends LitElement {
     });
   }
 
+  private chooseImage(): void {
+    this.shadowRoot?.querySelector<HTMLInputElement>('#custom-image-file')?.click();
+  }
+
   private async uploadImage(): Promise<void> {
     if (!this.selectedFile || !this.imageName) {
       this.uploadMessage = 'Please select an image and enter a name';
@@ -419,6 +424,42 @@ export class CustomImages extends LitElement {
     }
   }
 
+  private exportImages(): void {
+    const data = this.imagesManager.exportData();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `caydenjoy-images-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    this.uploadMessage = 'Custom images backup exported';
+  }
+
+  private chooseImportFile(): void {
+    this.shadowRoot?.querySelector<HTMLInputElement>('#custom-images-import')?.click();
+  }
+
+  private async importImages(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await file.text();
+      if (this.imagesManager.importData(data)) {
+        this.loadImages();
+        this.uploadMessage = 'Custom images backup imported';
+      } else {
+        this.uploadMessage = 'Could not import this backup file';
+      }
+    } catch (error) {
+      this.uploadMessage = `Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    } finally {
+      input.value = '';
+    }
+  }
+
   private clearAll(): void {
     if (confirm('Delete ALL custom images? This cannot be undone.')) {
       this.imagesManager.clearAll();
@@ -431,7 +472,7 @@ export class CustomImages extends LitElement {
   }
 
   private goToPremium(): void {
-    window.location.hash = '#/premium';
+    window.location.href = resolveRouterPath('premium');
   }
 
   render() {
@@ -482,8 +523,11 @@ export class CustomImages extends LitElement {
                 />
 
                 <div class="file-input-wrapper">
-                  <label class="file-input-label">📁 Choose Image</label>
+                  <button type="button" class="file-input-label" @click="${this.chooseImage}">
+                    Choose Image
+                  </button>
                   <input
+                    id="custom-image-file"
                     type="file"
                     accept="image/*"
                     class="file-input-hidden"
@@ -567,6 +611,19 @@ export class CustomImages extends LitElement {
               </div>
 
               <div class="button-group">
+                <button class="btn btn-secondary" @click="${this.exportImages}">
+                  Export Backup
+                </button>
+                <button class="btn btn-secondary" @click="${this.chooseImportFile}">
+                  Import Backup
+                </button>
+                <input
+                  id="custom-images-import"
+                  type="file"
+                  accept="application/json,.json"
+                  class="file-input-hidden"
+                  @change="${this.importImages}"
+                />
                 <button class="btn btn-secondary" @click="${this.deleteCategory}">
                   🗑️ Delete All in ${this.selectedCategory}
                 </button>

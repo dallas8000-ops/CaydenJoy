@@ -7,10 +7,12 @@ import './components/header';
 import './components/footer';
 import './styles/global.css';
 import { router } from './router';
+import { AccessibilityManager } from './utils/accessibility-manager';
 
 @customElement('app-index')
 export class AppIndex extends LitElement {
   @state() emergencyMode = false;
+  private accessibilityManager = AccessibilityManager.getInstance();
 
   static styles = css`
     :host {
@@ -72,6 +74,9 @@ export class AppIndex extends LitElement {
   `;
 
   firstUpdated() {
+    // Initialize accessibility manager
+    this.accessibilityManager;
+
     router.addEventListener('route-changed', () => {
       if ("startViewTransition" in document) {
         (document as any).startViewTransition(() => this.requestUpdate());
@@ -83,12 +88,8 @@ export class AppIndex extends LitElement {
   }
 
   private handleEmergency() {
-    // Play emergency alert sound
-    const utterance = new SpeechSynthesisUtterance('HELP! EMERGENCY!');
-    utterance.rate = 0.8;
-    utterance.pitch = 1.5;
-    utterance.volume = 1;
-    window.speechSynthesis.speak(utterance);
+    this.accessibilityManager.playSound('error');
+    this.accessibilityManager.speakNow('HELP! EMERGENCY!', 0.85);
 
     // Visual feedback
     this.emergencyMode = true;
@@ -105,7 +106,7 @@ export class AppIndex extends LitElement {
         ${router.render()}
       </main>
       <app-footer></app-footer>
-      
+
       <div class="emergency-bar">
         <div class="emergency-text">🆘 EMERGENCY - Need Help?</div>
         <button class="emergency-button" @click=${this.handleEmergency}>

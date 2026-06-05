@@ -2,6 +2,13 @@
 /*
   This file is used for all of your global styles and CSS variables.
   Check here https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties for more info on using CSS variables.
+
+  Accessibility Features:
+  - Multiple color themes for sensory sensitivity
+  - Font size controls
+  - Motion reduction support
+  - High contrast mode
+  - Interactive element highlighting
 */
 :root {
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -9,6 +16,60 @@
   --success-color: #00B894;
   --warning-color: #FDCB6E;
   --danger-color: #E17055;
+  --disable-animations: 0;
+
+  /* Font sizes */
+  --font-size-small: 0.875rem;
+  --font-size-medium: 1rem;
+  --font-size-large: 1.25rem;
+  --font-size-xlarge: 1.5rem;
+
+  --base-font-size: var(--font-size-medium);
+  --base-font-multiplier: 1;
+}
+
+/* CALM THEME - Soft, muted colors for sensory sensitivity */
+:root[data-theme="calm"] {
+  --primary-color: #7B9E89;     /* Soft sage green */
+  --success-color: #A8D5BA;     /* Light mint */
+  --warning-color: #F4D4A8;     /* Soft peach */
+  --danger-color: #D4A5A5;      /* Soft dusty rose */
+  --bg-color: #F5F3F0;          /* Warm off-white */
+  --text-color: #3E3E3E;        /* Soft dark gray */
+}
+
+/* HIGH CONTRAST THEME */
+:root[data-theme="highContrast"] {
+  --primary-color: #000080;     /* Navy blue */
+  --success-color: #008000;     /* Pure green */
+  --warning-color: #FF8C00;     /* Dark orange */
+  --danger-color: #C80000;      /* Pure red */
+  --bg-color: #FFFFFF;          /* Pure white */
+  --text-color: #000000;        /* Pure black */
+  --border-width: 3px;
+}
+
+/* NORMAL THEME */
+:root[data-theme="normal"] {
+  --bg-color: #F8F9FA;
+  --text-color: #2C3E50;
+}
+
+/* Font size adjustments */
+:root[data-font-size="small"] {
+  --base-font-multiplier: 0.875;
+}
+
+:root[data-font-size="medium"] {
+  --base-font-multiplier: 1;
+}
+
+:root[data-font-size="large"] {
+  --base-font-multiplier: 1.25;
+}
+
+:root[data-font-size="xlarge"] {
+  --base-font-multiplier: 1.5;
 }
 
 html, body {
@@ -49,4 +110,92 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+/* ACCESSIBILITY FEATURES */
+
+/* Apply font size multiplier to all text */
+html {
+  font-size: calc(16px * var(--base-font-multiplier));
+}
+
+/* Motion reduction for users with sensory sensitivities */
+.prefers-reduced-motion,
+.prefers-reduced-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Remove animations when disabled */
+:root[style*="--disable-animations: 1"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Larger, more accessible button sizes (minimum 48x48px for mobile) */
+sl-button, button, .button {
+  min-width: 48px;
+  min-height: 48px;
+  padding: calc(0.75rem * var(--base-font-multiplier)) calc(1.5rem * var(--base-font-multiplier));
+  font-size: calc(1rem * var(--base-font-multiplier));
+}
+
+/* High contrast borders */
+:root[data-theme="highContrast"] sl-button,
+:root[data-theme="highContrast"] button {
+  border: 3px solid var(--text-color);
+}
+
+/* Interactive element highlighting for high contrast mode */
+.highlight-interactive sl-button,
+.highlight-interactive button,
+.highlight-interactive a {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* High contrast form elements */
+:root[data-theme="highContrast"] input,
+:root[data-theme="highContrast"] textarea,
+:root[data-theme="highContrast"] select {
+  border: 2px solid var(--text-color);
+}
+
+/* Apply theme background colors */
+:root[data-theme="calm"] body,
+:root[data-theme="highContrast"] body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Ensure text remains readable with color themes */
+:root[data-theme="calm"] h1,
+:root[data-theme="calm"] h2,
+:root[data-theme="calm"] h3,
+:root[data-theme="calm"] h4,
+:root[data-theme="calm"] h5,
+:root[data-theme="calm"] h6,
+:root[data-theme="highContrast"] h1,
+:root[data-theme="highContrast"] h2,
+:root[data-theme="highContrast"] h3,
+:root[data-theme="highContrast"] h4,
+:root[data-theme="highContrast"] h5,
+:root[data-theme="highContrast"] h6 {
+  color: var(--primary-color);
+}
+
+/* Scrollbar styling for high contrast */
+:root[data-theme="highContrast"] ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+:root[data-theme="highContrast"] ::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+
+:root[data-theme="highContrast"] ::-webkit-scrollbar-thumb {
+  background: var(--text-color);
+  border: 2px solid var(--bg-color);
 }

@@ -28,6 +28,8 @@ import './pages/app-premium.js';
 import './pages/app-custom-images.js';
 import './pages/app-upgrade.js';
 import './pages/app-admin.js';
+import './pages/app-progress.js';
+import './pages/app-feedback.js';
 import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
@@ -71,7 +73,7 @@ export const router = new Router({
       },
       {
         path: resolveRouterPath('family-puzzle'),
-        title: 'Family Puzzle',
+        title: 'Activity Sessions',
         render: () => html`<app-family-puzzle></app-family-puzzle>`
       },
       {
@@ -113,6 +115,16 @@ export const router = new Router({
         path: resolveRouterPath('admin'),
         title: 'Admin',
         render: () => html`<app-admin></app-admin>`
+      },
+      {
+        path: resolveRouterPath('progress'),
+        title: 'Progress Dashboard',
+        render: () => html`<app-progress></app-progress>`
+      },
+      {
+        path: resolveRouterPath('feedback'),
+        title: 'Feedback & Wishlist',
+        render: () => html`<app-feedback></app-feedback>`
       },
       {
         path: resolveRouterPath('about'),

@@ -2,7 +2,7 @@
   "expo": {
     "name": "CaydenJoy",
     "slug": "caydenjoiy",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./public/assets/icons/CaydenJoy.png",
     "scheme": "caydenjoiy",
@@ -10,20 +10,18 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTabletMode": true
-    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./public/assets/icons/CaydenJoy.png",
         "backgroundColor": "#F8F9FA"
       },
-      "package": "io.github.dallas8000_ops.twa",
-      "minSdkVersion": 24,
-      "targetSdkVersion": 34
+      "package": "io.github.dallas8000_ops.twa"
     },
     "extra": {
-      "eas": {}
-    }
+      "eas": {
+        "projectId": "8d095c38-3ba8-4a10-ac53-33824b3467b6"
+      }
+    },
+    "owner": "dallas8714"
   }
 }

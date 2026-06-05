@@ -2,86 +2,161 @@ import { LitElement, css, html } from 'lit';
 import { property, customElement } from 'lit/decorators.js';
 import { resolveRouterPath } from '../router';
 
-import '@shoelace-style/shoelace/dist/components/card/card.js';
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
-import { styles } from '../styles/shared-styles';
 import '../components/header';
-import '../components/footer';
 
 @customElement('app-home')
 export class AppHome extends LitElement {
-
-  // For more information on using properties and state in lit
-  // check out this link https://lit.dev/docs/components/properties/
-  @property() message = 'Welcome to CaydenJoy';
+  @property() message = 'CaydenJoy';
   @property() isOnline = navigator.onLine;
 
-  static styles = [
-    styles,
-    css`
-    #welcomeBar {
+  static styles = css`
+    :host {
+      display: block;
+      min-height: 100vh;
+      background: #f6f8fb;
+      color: #243041;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 1.25rem;
+    }
+
+    .intro {
+      display: grid;
+      gap: 0.6rem;
+      margin: 0.5rem 0 1.2rem;
+    }
+
+    h1 {
+      margin: 0;
+      color: #243041;
+      font-size: 2.25rem;
+      line-height: 1.05;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 720px;
+      color: #586778;
+      font-size: 1.08rem;
+      line-height: 1.5;
+    }
+
+    .status-row {
       display: flex;
-      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
       align-items: center;
-      flex-direction: column;
     }
 
-    #welcomeCard,
-    #infoCard {
-      padding: 18px;
-      padding-top: 0px;
+    .urgent-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin: 1rem 0;
     }
 
-    sl-card::part(footer) {
-      display: flex;
-      justify-content: flex-end;
+    .urgent {
+      min-height: 62px;
+      border: 0;
+      border-radius: 0.5rem;
+      color: #ffffff;
+      font-size: 1.05rem;
+      font-weight: 900;
+      box-shadow: 0 3px 10px rgba(30, 42, 58, 0.16);
     }
 
-    @media(min-width: 750px) {
-      sl-card {
-        width: 70vw;
+    .help { background: #c0392b; }
+    .bathroom { background: #6b5b95; }
+    .break { background: #1f7a8c; }
+    .stop { background: #9d1c1c; }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .feature {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 1rem;
+      align-items: stretch;
+      min-height: 160px;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid #d9e2ec;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 6px 18px rgba(30, 42, 58, 0.08);
+    }
+
+    .feature:hover {
+      outline: 4px solid rgba(46, 143, 116, 0.18);
+      text-decoration: none;
+    }
+
+    .feature img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #dfe8f1;
+    }
+
+    .feature-copy {
+      padding: 1rem 1rem 1rem 0;
+      display: grid;
+      align-content: center;
+      gap: 0.35rem;
+    }
+
+    .feature-title {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #243041;
+    }
+
+    .feature-text {
+      color: #657386;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 760px) {
+      .feature-grid,
+      .urgent-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature {
+        grid-template-columns: 96px 1fr;
+      }
+
+      h1 {
+        font-size: 1.75rem;
       }
     }
+  `;
 
-
-    @media (horizontal-viewport-segments: 2) {
-      #welcomeBar {
-        flex-direction: row;
-        align-items: flex-start;
-        justify-content: space-between;
-      }
-
-      #welcomeCard {
-        margin-right: 64px;
-      }
-    }
-  `];
-
-  async firstUpdated() {
-    // this method is a lifecycle even in lit
-    // for more info check out the lit docs https://lit.dev/docs/components/lifecycle/
-    console.log('This is your home page');
-    
-    // Listen for online/offline events
+  firstUpdated() {
     window.addEventListener('online', () => {
       this.isOnline = true;
-      console.log('App is online');
     });
     window.addEventListener('offline', () => {
       this.isOnline = false;
-      console.log('App is offline');
     });
   }
 
-  share() {
-    if ((navigator as any).share) {
-      (navigator as any).share({
-        title: 'PWABuilder pwa-starter',
-        text: 'Check out the PWABuilder pwa-starter!',
-        url: 'https://github.com/pwa-builder/pwa-starter',
-      });
+  private speak(text: string) {
+    if ('speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined') {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
     }
   }
 
@@ -90,58 +165,93 @@ export class AppHome extends LitElement {
       <app-header></app-header>
 
       <main>
-        <div id="welcomeBar">
-          <sl-card id="welcomeCard">
-            <div slot="header">
-              <h2>${this.message}</h2>
-            </div>
+        <section class="intro">
+          <div class="status-row">
+            <h1>${this.message}</h1>
+            ${this.isOnline
+              ? html`<sl-badge variant="success">Online</sl-badge>`
+              : html`<sl-badge variant="warning">Offline</sl-badge>`}
+          </div>
+          <p class="lead">
+            A photo-first communication and activity app for daily needs, choices, matching,
+            routines, and therapy-style sessions.
+          </p>
+        </section>
 
-            <p>
-              For more information on the PWABuilder pwa-starter, check out the
-              <a href="https://docs.pwabuilder.com/#/starter/quick-start">
-                documentation</a>.
-            </p>
-
-            <p id="mainInfo">
-              CaydenJoy is your personal progressive web app for joy and productivity.
-              Build amazing experiences with modern web technologies.
-              ${this.isOnline ? html`<sl-badge variant="success">Online</sl-badge>` : html`<sl-badge variant="warning">Offline</sl-badge>`}
-            </p>
-
-            ${'share' in navigator
-              ? html`<sl-button slot="footer" variant="default" @click="${this.share}">
-                        <sl-icon slot="prefix" name="share"></sl-icon>
-                        Share this Starter!
-                      </sl-button>`
-              : null}
-          </sl-card>
-
-          <sl-card id="infoCard">
-            <h2>Technology Used</h2>
-
-            <ul>
-              <li>
-                <a href="https://www.typescriptlang.org/">TypeScript</a>
-              </li>
-
-              <li>
-                <a href="https://lit.dev">lit</a>
-              </li>
-
-              <li>
-                <a href="https://shoelace.style/">Shoelace</a>
-              </li>
-
-              <li>
-                <a href="https://github.com/thepassle/app-tools/blob/master/router/README.md"
-                  >App Tools Router</a>
-              </li>
-            </ul>
-          </sl-card>
-
-          <sl-button href="${resolveRouterPath('services')}" variant="default">View Services</sl-button>
-          <sl-button href="${resolveRouterPath('about')}" variant="primary">Navigate to About</sl-button>
+        <div class="urgent-grid" aria-label="Always available communication buttons">
+          <button class="urgent help" @click=${() => this.speak('Help please.')}>Help</button>
+          <button class="urgent bathroom" @click=${() => this.speak('I need the bathroom.')}>Bathroom</button>
+          <button class="urgent break" @click=${() => this.speak('I need a break.')}>Break</button>
+          <button class="urgent stop" @click=${() => this.speak('Stop.')}>Stop</button>
         </div>
+
+        <section class="feature-grid" aria-label="Main app areas">
+          <a class="feature" href=${resolveRouterPath('family-puzzle')}>
+            <img
+              src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=500&q=80"
+              alt="Child activity table"
+            />
+            <div class="feature-copy">
+              <div class="feature-title">Activity Sessions</div>
+              <div class="feature-text">Photo choices, matching, routine sequencing, and simple puzzle work.</div>
+            </div>
+          </a>
+
+          <a class="feature" href=${resolveRouterPath()}>
+            <img
+              src="https://images.unsplash.com/photo-1544027993-37dbfe43562a?auto=format&fit=crop&w=500&q=80"
+              alt="Communication cards"
+            />
+            <div class="feature-copy">
+              <div class="feature-title">Communication Board</div>
+              <div class="feature-text">Large request buttons with speech for daily needs and sensory support.</div>
+            </div>
+          </a>
+
+          <a class="feature" href=${resolveRouterPath('custom-images')}>
+            <img
+              src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=500&q=80"
+              alt="Camera for custom photos"
+            />
+            <div class="feature-copy">
+              <div class="feature-title">Custom Photos</div>
+              <div class="feature-text">Add real pictures from the child's home, family, foods, toys, and places.</div>
+            </div>
+          </a>
+
+          <a class="feature" href=${resolveRouterPath('settings')}>
+            <img
+              src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=500&q=80"
+              alt="Calm settings workspace"
+            />
+            <div class="feature-copy">
+              <div class="feature-title">Comfort Settings</div>
+              <div class="feature-text">Adjust theme, text size, sound, speech, contrast, and motion sensitivity.</div>
+            </div>
+          </a>
+
+          <a class="feature" href=${resolveRouterPath('progress')}>
+            <img
+              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=80"
+              alt="Progress notes and charts"
+            />
+            <div class="feature-copy">
+              <div class="feature-title">Progress Dashboard</div>
+              <div class="feature-text">See local usage patterns for communication, activities, and safety buttons.</div>
+            </div>
+          </a>
+
+          <a class="feature" href=${resolveRouterPath('feedback')}>
+            <img
+              src="https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=500&q=80"
+              alt="Notebook for feedback and ideas"
+            />
+            <div class="feature-copy">
+              <div class="feature-title">Feedback & Wishlist</div>
+              <div class="feature-text">Save caregiver ideas, improvement requests, bug reports, and success stories.</div>
+            </div>
+          </a>
+        </section>
       </main>
     `;
   }

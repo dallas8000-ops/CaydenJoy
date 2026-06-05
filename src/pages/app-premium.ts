@@ -1,639 +1,424 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { PremiumManager } from '../utils/premium-manager';
+import { PremiumManager, PremiumTier } from '../utils/premium-manager';
+import { resolveRouterPath } from '../router';
+
+interface TierOption {
+  id: PremiumTier;
+  name: string;
+  price: string;
+  summary: string;
+  bestFor: string;
+  features: string[];
+}
 
 @customElement('app-premium')
 export class Premium extends LitElement {
-  @state() isPremium = false;
-  @state() purchaseMessage = '';
-  @state() showPurchaseConfirm = false;
+  @state() private isPremium = false;
+  @state() private activeTier: PremiumTier = 'none';
+  @state() private selectedTier: PremiumTier = 'learning';
+  @state() private showPurchaseConfirm = false;
+  @state() private purchaseMessage = '';
 
   private premiumManager = PremiumManager.getInstance();
+
+  private readonly tiers: TierOption[] = [
+    {
+      id: 'family',
+      name: 'Family Photos',
+      price: '$39.99',
+      summary: 'Personalize the app with real pictures.',
+      bestFor: 'Families who mainly need custom photos.',
+      features: [
+        'Upload custom images',
+        'Organize photos by category',
+        'Use real family, food, toy, and place pictures',
+        'Local device storage',
+      ],
+    },
+    {
+      id: 'learning',
+      name: 'Learning Plus',
+      price: '$99.99',
+      summary: 'Adds organization and backup tools.',
+      bestFor: 'Home practice, therapy sessions, and school routines.',
+      features: [
+        'Everything in Family Photos',
+        'Additional custom tabs',
+        'Export and import custom image backups',
+        'Better setup for activity sessions',
+      ],
+    },
+    {
+      id: 'allAccess',
+      name: 'All Access',
+      price: '$149.99',
+      summary: 'Full feature access for serious long-term use.',
+      bestFor: 'Caregivers, therapy teams, and multi-context use.',
+      features: [
+        'Everything in Learning Plus',
+        'Voice customization access',
+        'All current premium features',
+        'Future premium feature updates',
+        'Priority support',
+      ],
+    },
+  ];
 
   static styles = css`
     :host {
       display: block;
-      background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
       min-height: 100vh;
-      padding: 20px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-        Cantarell, sans-serif;
+      padding: 1.25rem;
+      background: #f6f8fb;
+      color: #243041;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 1180px;
       margin: 0 auto;
     }
 
     .header {
-      text-align: center;
-      color: white;
-      margin-bottom: 40px;
+      margin-bottom: 1rem;
     }
 
-    .header h1 {
-      font-size: 36px;
-      margin: 0 0 10px 0;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .header p {
-      font-size: 18px;
-      opacity: 0.9;
+    h1 {
       margin: 0;
+      color: #243041;
+      font-size: 2rem;
+      line-height: 1.1;
     }
 
-    .premium-card {
-      background: white;
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      margin-bottom: 20px;
+    .subtitle {
+      margin: 0.4rem 0 0;
+      max-width: 780px;
+      color: #596779;
+      font-size: 1.05rem;
+      line-height: 1.45;
     }
 
     .status-banner {
-      background: #d4edda;
-      border: 2px solid #28a745;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 30px;
-      color: #155724;
-    }
-
-    .status-banner h2 {
-      margin: 0 0 10px 0;
-      font-size: 24px;
-    }
-
-    .status-banner p {
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .features-section h2 {
-      color: #333;
-      text-align: center;
-      margin-top: 0;
-      font-size: 28px;
-    }
-
-    .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin: 30px 0;
+      gap: 0.4rem;
+      margin: 1rem 0;
+      padding: 1rem;
+      border-left: 8px solid #2e8f74;
+      border-radius: 0.5rem;
+      background: #edf7f4;
+      color: #1f463b;
+      font-weight: 800;
     }
 
-    .feature-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      transition: all 0.3s;
+    .tier-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
     }
 
-    .feature-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    .tier-card {
+      display: grid;
+      gap: 0.75rem;
+      align-content: start;
+      min-height: 520px;
+      padding: 1rem;
+      border: 3px solid #d8e0ea;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      box-shadow: 0 4px 16px rgba(30, 42, 58, 0.1);
     }
 
-    .feature-icon {
-      font-size: 40px;
-      margin-bottom: 10px;
+    .tier-card.selected {
+      border-color: #2e8f74;
+      box-shadow: 0 0 0 5px rgba(46, 143, 116, 0.18);
     }
 
-    .feature-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin: 10px 0;
+    .tier-name {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #243041;
     }
 
-    .feature-description {
-      font-size: 14px;
-      opacity: 0.9;
+    .tier-price {
+      font-size: 2.4rem;
+      line-height: 1;
+      font-weight: 900;
+      color: #1f7a8c;
     }
 
-    .pricing-section {
-      text-align: center;
-      margin: 40px 0;
+    .one-time {
+      color: #657386;
+      font-weight: 800;
     }
 
-    .price-tag {
-      display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px 40px;
-      border-radius: 16px;
-      margin: 20px 0;
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    .tier-summary {
+      color: #243041;
+      font-weight: 800;
+      line-height: 1.35;
     }
 
-    .price-amount {
-      font-size: 48px;
-      font-weight: bold;
+    .best-for {
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      background: #edf7f4;
+      color: #1f463b;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    ul {
       margin: 0;
+      padding-left: 1.2rem;
+      color: #4e5d70;
+      line-height: 1.45;
+      font-weight: 700;
     }
 
-    .price-label {
-      font-size: 18px;
-      opacity: 0.9;
-      margin: 0;
+    li {
+      margin-bottom: 0.45rem;
     }
 
-    .benefits-list {
-      list-style: none;
-      padding: 0;
-      margin: 20px 0;
-      text-align: left;
-    }
-
-    .benefits-list li {
-      padding: 12px 0;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #333;
-    }
-
-    .benefits-list li:last-child {
-      border-bottom: none;
-    }
-
-    .benefits-list li::before {
-      content: '✓';
-      color: #28a745;
-      font-weight: bold;
-      font-size: 20px;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 30px 0;
-    }
-
-    .btn {
-      padding: 16px 32px;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      font-weight: bold;
+    .tier-button,
+    .secondary-button,
+    .confirm-button {
+      min-height: 52px;
+      border: 0;
+      border-radius: 0.5rem;
       cursor: pointer;
-      transition: all 0.3s;
-      font-family: inherit;
-      text-transform: uppercase;
+      font-weight: 900;
+      font-size: 1rem;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    .tier-button {
+      align-self: end;
+      margin-top: auto;
+      background: #243041;
+      color: #ffffff;
     }
 
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    .tier-button.selected {
+      background: #2e8f74;
     }
 
-    .btn-secondary {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    .btn-secondary:hover {
-      background: #d0d0d0;
-    }
-
-    .btn-success {
-      background: #28a745;
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #218838;
-    }
-
-    .message {
-      padding: 15px 20px;
-      border-radius: 10px;
-      margin: 20px 0;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .message.success {
-      background: #d4edda;
-      color: #155724;
-      border: 2px solid #28a745;
-    }
-
-    .message.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 2px solid #f5c6cb;
-    }
-
-    .confirmation-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
+    .actions {
       display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      border: 1px solid #d8e0ea;
+    }
+
+    .confirm-button {
+      min-width: 220px;
+      padding: 0.75rem 1rem;
+      background: #2e8f74;
+      color: #ffffff;
+    }
+
+    .secondary-button {
+      padding: 0.75rem 1rem;
+      background: #e8edf3;
+      color: #243041;
+    }
+
+    .note {
+      color: #657386;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .feature-panel {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      border: 1px solid #d8e0ea;
+    }
+
+    .feature-panel h2 {
+      margin: 0 0 0.75rem;
+      color: #243041;
+      font-size: 1.3rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .feature {
+      padding: 0.85rem;
+      border-radius: 0.5rem;
+      background: #f8fafc;
+      border-left: 6px solid #1f7a8c;
+      color: #243041;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.55);
       z-index: 1000;
     }
 
-    .confirmation-dialog {
-      background: white;
-      border-radius: 16px;
-      padding: 40px;
-      max-width: 500px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      text-align: center;
+    .modal {
+      width: min(520px, 100%);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      background: #ffffff;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
     }
 
-    .confirmation-dialog h2 {
-      color: #333;
-      margin-top: 0;
-      font-size: 24px;
+    .modal h2 {
+      margin: 0 0 0.5rem;
+      color: #243041;
     }
 
-    .confirmation-dialog p {
-      color: #666;
-      font-size: 18px;
-      margin: 15px 0;
+    .modal-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 1rem;
     }
 
-    .confirmation-buttons {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      margin-top: 30px;
-    }
+    @media (max-width: 900px) {
+      .tier-grid,
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
 
-    .confirmation-buttons button {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .confirm-yes {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .confirm-no {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    .faq-section {
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 30px 0;
-    }
-
-    .faq-section h3 {
-      color: #333;
-      margin-top: 0;
-    }
-
-    .faq-item {
-      margin: 15px 0;
-      padding: 15px;
-      background: white;
-      border-radius: 8px;
-    }
-
-    .faq-question {
-      font-weight: bold;
-      color: #667eea;
-      margin-bottom: 8px;
-    }
-
-    .faq-answer {
-      color: #666;
-      font-size: 14px;
-    }
-
-    .already-premium {
-      text-align: center;
-      color: white;
-    }
-
-    .already-premium h2 {
-      font-size: 32px;
-      margin: 20px 0;
-    }
-
-    .back-link {
-      display: inline-block;
-      color: white;
-      text-decoration: none;
-      padding: 10px 20px;
-      border: 2px solid white;
-      border-radius: 8px;
-      margin-top: 20px;
-      transition: all 0.3s;
-    }
-
-    .back-link:hover {
-      background: rgba(255, 255, 255, 0.1);
+      .tier-card {
+        min-height: auto;
+      }
     }
   `;
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.checkPremium();
+    this.refreshPremiumState();
   }
 
-  private checkPremium(): void {
+  private refreshPremiumState(): void {
     this.isPremium = this.premiumManager.isPremium();
+    this.activeTier = this.premiumManager.getTier();
+    if (this.activeTier !== 'none') {
+      this.selectedTier = this.activeTier;
+    }
   }
 
-  private simulatePurchase(): void {
+  private get selectedTierOption(): TierOption {
+    return this.tiers.find((tier) => tier.id === this.selectedTier) ?? this.tiers[1];
+  }
+
+  private selectTier(tier: PremiumTier): void {
+    if (tier === 'none') return;
+    this.selectedTier = tier;
+  }
+
+  private openPurchaseConfirm(): void {
     this.showPurchaseConfirm = true;
-  }
-
-  private confirmPurchase(): void {
-    this.premiumManager.simulatePremiumPurchase();
-    this.isPremium = true;
-    this.showPurchaseConfirm = false;
-    this.purchaseMessage = '🎉 Premium unlocked! Thank you for your purchase!';
-
-    // Clear message after 4 seconds
-    setTimeout(() => {
-      this.purchaseMessage = '';
-    }, 4000);
   }
 
   private cancelPurchase(): void {
     this.showPurchaseConfirm = false;
   }
 
-  private navigateTo(path: string): void {
-    window.location.hash = `#${path}`;
+  private confirmPurchase(): void {
+    this.premiumManager.simulatePremiumPurchase(this.selectedTier);
+    this.refreshPremiumState();
+    this.showPurchaseConfirm = false;
+    this.purchaseMessage = `${this.selectedTierOption.name} is active.`;
   }
 
   render() {
-    if (this.isPremium) {
-      return html`
-        <div class="container">
-          <div class="header already-premium">
-            <h1>👑 Premium Active</h1>
-            <p>Thank you for supporting CaydenJoy!</p>
-            <a href="/#/custom-images" class="back-link">📸 Go to Custom Images</a>
-            <a href="/#/settings" class="back-link">⚙️ Back to Settings</a>
-          </div>
-
-          <div class="premium-card">
-            <div class="status-banner">
-              <h2>✅ You have premium access!</h2>
-              <p>Enjoy all premium features including custom image uploads and more.</p>
-            </div>
-
-            <div class="features-section">
-              <h2>✨ Your Premium Features</h2>
-              <div class="features-grid">
-                <div class="feature-card">
-                  <div class="feature-icon">📸</div>
-                  <div class="feature-title">Custom Images</div>
-                  <div class="feature-description">Upload photos of family, food, and places</div>
-                </div>
-
-                <div class="feature-card">
-                  <div class="feature-icon">🎤</div>
-                  <div class="feature-title">Voice Customization</div>
-                  <div class="feature-description">Personalize voice characteristics</div>
-                </div>
-
-                <div class="feature-card">
-                  <div class="feature-icon">☁️</div>
-                  <div class="feature-title">Cloud Backup</div>
-                  <div class="feature-description">Backup your settings and images</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
+    const selected = this.selectedTierOption;
 
     return html`
       <div class="container">
-        <div class="header">
-          <h1>🌟 Upgrade to Premium</h1>
-          <p>Unlock all features for just $5.99</p>
-        </div>
+        <section class="header">
+          <h1>Premium Tiers</h1>
+          <p class="subtitle">
+            Choose the level that fits the family. These suggested one-time prices keep CaydenJoy below major AAC apps while reflecting serious communication, activity, backup, and caregiver value.
+            Early access discounts can be offered without lowering the long-term value of the app.
+          </p>
+        </section>
 
-        ${this.purchaseMessage
-          ? html`
-              <div class="premium-card">
-                <div class="message success">${this.purchaseMessage}</div>
-              </div>
-            `
-          : ''}
-
-        <div class="premium-card">
-          <div class="features-section">
-            <h2>✨ Premium Features</h2>
-            <div class="features-grid">
-              <div class="feature-card">
-                <div class="feature-icon">📸</div>
-                <div class="feature-title">Custom Images</div>
-                <div class="feature-description">
-                  Upload photos of family members, favorite foods, places you visit, and more
-                </div>
-              </div>
-
-              <div class="feature-card">
-                <div class="feature-icon">🎤</div>
-                <div class="feature-title">Voice Customization</div>
-                <div class="feature-description">
-                  Personalize voice speed, pitch, and language preferences
-                </div>
-              </div>
-
-              <div class="feature-card">
-                <div class="feature-icon">☁️</div>
-                <div class="feature-title">Cloud Backup</div>
-                <div class="feature-description">
-                  Backup and sync your custom images and settings across devices
-                </div>
-              </div>
-
-              <div class="feature-card">
-                <div class="feature-icon">📑</div>
-                <div class="feature-title">Additional Tabs</div>
-                <div class="feature-description">
-                  Create multiple custom tabs for Communication, Foods, Colors, Numbers, Places, and Family Puzzle
-                </div>
-              </div>
-            </div>
-
-            <ul class="benefits-list">
-              <li>Unlimited custom image uploads</li>
-              <li>Organize images by category</li>
-              <li>Create multiple custom tabs across 6 different learning features</li>
-              <li>Priority support</li>
-              <li>No ads or tracking</li>
-              <li>One-time purchase - yours forever</li>
-            </ul>
+        ${this.isPremium ? html`
+          <div class="status-banner">
+            <div>Premium active: ${this.tiers.find((tier) => tier.id === this.activeTier)?.name ?? 'All Access'}</div>
+            <div>${this.purchaseMessage || 'Premium features are unlocked for this device.'}</div>
           </div>
-        </div>
+        ` : ''}
 
-        <div class="premium-card">
-          <div class="pricing-section">
-            <h3 style="margin-top: 0; color: #333;">Pricing & Upgrade Details</h3>
-            
-            <div style="background: #f0f7ff; border-left: 4px solid #667eea; padding: 15px; border-radius: 8px; margin: 15px 0;">
-              <p style="margin: 0 0 10px 0;"><strong>Base App Cost:</strong> $19.99 (One-Time Purchase)</p>
-              <p style="margin: 0 0 10px 0;"><strong>Premium Upgrade:</strong> <span style="color: #28a745; font-weight: bold;">$5.99</span> (One-Time Purchase)</p>
-              <p style="margin: 0; font-size: 13px; color: #666;"><em>Total investment: $25.98 for full access</em></p>
-            </div>
-
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
-              <h4 style="margin-top: 0; color: #333;">Why This Price?</h4>
-              <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>Unlike subscription apps ($5-15/month = $60-180/year), this is a <strong>lifetime</strong> investment</li>
-                <li>Professional AAC software costs $99-$300+</li>
-                <li>Your payment directly supports development and updates</li>
-                <li>No hidden fees or recurring charges ever</li>
+        <section class="tier-grid" aria-label="Premium tier options">
+          ${this.tiers.map((tier) => html`
+            <article class="tier-card ${this.selectedTier === tier.id ? 'selected' : ''}">
+              <div class="tier-name">${tier.name}</div>
+              <div>
+                <div class="tier-price">${tier.price}</div>
+                <div class="one-time">one-time purchase</div>
+              </div>
+              <div class="tier-summary">${tier.summary}</div>
+              <div class="best-for">${tier.bestFor}</div>
+              <ul>
+                ${tier.features.map((feature) => html`<li>${feature}</li>`)}
               </ul>
-            </div>
+              <button
+                class="tier-button ${this.selectedTier === tier.id ? 'selected' : ''}"
+                @click=${() => this.selectTier(tier.id)}
+              >
+                ${this.selectedTier === tier.id ? 'Selected' : 'Select'}
+              </button>
+            </article>
+          `)}
+        </section>
 
-            <div class="price-tag">
-              <p class="price-amount">$5.99</p>
-              <p class="price-label">One-Time Premium Upgrade</p>
-            </div>
-            <p style="color: #666; margin-top: 10px; font-size: 14px;">✓ Save money compared to similar apps ($9.99 - $19.99)</p>
+        <section class="actions">
+          <button class="confirm-button" @click=${this.openPurchaseConfirm}>
+            Unlock ${selected.name}
+          </button>
+          <a class="secondary-button" href=${resolveRouterPath('upgrade')}>Use Upgrade Code</a>
+          <a class="secondary-button" href=${resolveRouterPath('settings')}>Later</a>
+          <div class="note">
+            In production, this will connect to Google Play Billing. In this build it simulates the selected tier so the feature gates can be tested.
           </div>
+        </section>
 
-          <div style="background: #e8f5e9; border: 1px solid #4caf50; border-radius: 8px; padding: 15px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #2e7d32;">✓ What You're Getting</h4>
-            <ul style="margin: 10px 0; padding-left: 20px; color: #333;">
-              <li>Unlimited custom image uploads</li>
-              <li>Organize your family photos by category</li>
-              <li>Voice customization options</li>
-              <li>Cloud backup of your settings (optional)</li>
-              <li>Priority customer support</li>
-              <li>All future premium feature updates</li>
-              <li>No ads • No tracking • No subscriptions</li>
-            </ul>
+        <section class="feature-panel">
+          <h2>Enhanced Premium Value</h2>
+          <div class="feature-grid">
+            <div class="feature">Real photo uploads for food, people, places, activities, and routines.</div>
+            <div class="feature">Custom tabs for communication boards and learning pages.</div>
+            <div class="feature">Export/import backup tools for custom image libraries.</div>
+            <div class="feature">All Access keeps room for future caregiver and therapy tools.</div>
           </div>
-
-          <div class="action-buttons">
-            <button class="btn btn-primary" @click="${this.simulatePurchase}">
-              🛒 Unlock Premium Now ($5.99)
-            </button>
-            <button class="btn btn-secondary" @click="${() => this.navigateTo('/settings')}">
-              Later
-            </button>
-          </div>
-        </div>
-
-        <div class="premium-card faq-section">
-          <h3>❓ Frequently Asked Questions</h3>
-
-          <div class="faq-item">
-            <div class="faq-question">Is this a subscription?</div>
-            <div class="faq-answer">
-              No! Premium is a one-time purchase of $5.99. You keep it forever. There are no monthly or yearly fees.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">How much does the base app cost?</div>
-            <div class="faq-answer">
-              The base app is $19.99 (one-time purchase). Premium upgrade is an additional $5.99 for a total of $25.98.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">Why is it more affordable than other AAC apps?</div>
-            <div class="faq-answer">
-              Professional AAC software costs $99-$300+. We believe quality communication tools should be accessible to everyone. Our pricing reflects this mission.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">Can I upgrade from free to premium?</div>
-            <div class="faq-answer">
-              Yes! You can upgrade anytime by clicking the "Upgrade to Premium" button in Settings or visiting this page.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">Can I get a refund?</div>
-            <div class="faq-answer">
-              Yes! You have 48 hours after purchase to request a refund if you're not satisfied. Visit your app store's account settings to request a refund.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">Is there a family or group discount?</div>
-            <div class="faq-answer">
-              Contact us at dallas8000@gmail.com for bulk licensing, family plans, or institutional pricing.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">Will my data be safe?</div>
-            <div class="faq-answer">
-              All data stays on your device by default. We never track users. Optional cloud backup is encrypted and secure.
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">What if I have more questions about payment?</div>
-            <div class="faq-answer">
-              Email us at dallas8000@gmail.com with any payment or upgrade questions. We're here to help!
-            </div>
-          </div>
-
-          <div class="faq-item">
-            <div class="faq-question">What about accessibility?</div>
-            <div class="faq-answer">
-              CaydenJoy is built for accessibility. All features including premium features work with all assistive technologies.
-            </div>
-          </div>
-        </div>
-
-        ${this.showPurchaseConfirm
-          ? html`
-              <div class="confirmation-modal" @click="${this.cancelPurchase}">
-                <div class="confirmation-dialog" @click="${(e: Event) => e.stopPropagation()}">
-                  <h2>💳 Complete Purchase</h2>
-                  <p>Unlock Premium for $5.99</p>
-                  <p style="font-size: 14px; color: #999;">
-                    This is a simulated purchase. In production, this would connect to Google Play
-                    In-App Billing.
-                  </p>
-                  <div class="confirmation-buttons">
-                    <button class="confirm-yes" @click="${this.confirmPurchase}">
-                      ✓ Confirm Purchase
-                    </button>
-                    <button class="confirm-no" @click="${this.cancelPurchase}">Cancel</button>
-                  </div>
-                </div>
-              </div>
-            `
-          : ''}
+        </section>
       </div>
+
+      ${this.showPurchaseConfirm ? html`
+        <div class="modal-overlay" @click=${this.cancelPurchase}>
+          <div class="modal" @click=${(event: Event) => event.stopPropagation()}>
+            <h2>Confirm Tier</h2>
+            <p><strong>${selected.name}</strong> will be unlocked for ${selected.price} in this simulated test purchase.</p>
+            <p class="note">This is not a real charge. It verifies the premium flow inside the app.</p>
+            <div class="modal-buttons">
+              <button class="confirm-button" @click=${this.confirmPurchase}>Confirm</button>
+              <button class="secondary-button" @click=${this.cancelPurchase}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      ` : ''}
     `;
   }
 }

@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { AccessibilityManager } from '../utils/accessibility-manager.js';
 
 interface QuickButton {
   id: string;
@@ -10,6 +11,8 @@ interface QuickButton {
 
 @customElement('app-home-enhanced')
 export class AppHomeEnhanced extends LitElement {
+  private accessibilityManager = AccessibilityManager.getInstance();
+
   @state() buttons: QuickButton[] = [
     { id: 'yes', label: 'YES', emoji: '✅', color: '#00B894' },
     { id: 'no', label: 'NO', emoji: '❌', color: '#E17055' },
@@ -121,12 +124,8 @@ export class AppHomeEnhanced extends LitElement {
   `;
 
   private handleButtonClick(button: QuickButton) {
-    // Play sound/speech
-    const utterance = new SpeechSynthesisUtterance(button.label);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.2;
-    utterance.volume = 1;
-    window.speechSynthesis.speak(utterance);
+    this.accessibilityManager.playSound('click');
+    this.accessibilityManager.speakNow(button.label, 1);
   }
 
   render() {
@@ -137,7 +136,7 @@ export class AppHomeEnhanced extends LitElement {
 
         <div class="buttons-grid">
           ${this.buttons.map(button => html`
-            <button 
+            <button
               class="quick-button"
               style="--button-color: ${button.color}"
               @click=${() => this.handleButtonClick(button)}

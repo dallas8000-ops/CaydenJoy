@@ -80,7 +80,7 @@ export class AppAbout extends LitElement {
             <li>Unlimited custom image uploads</li>
             <li>Organize family photos by category</li>
             <li>Voice customization (speed, pitch, language)</li>
-            <li>Cloud backup of your data (optional)</li>
+            <li>Backup export and import tools for custom images</li>
             <li>Priority customer support</li>
             <li>All future premium feature updates</li>
             <li><strong>No ads • No tracking</strong></li>

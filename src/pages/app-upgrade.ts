@@ -233,11 +233,13 @@ export class AppUpgrade extends LitElement {
     if (isValid) {
       this.premiumManager.refreshStatus();
       this.isUpgraded = true;
-      this.message = 'Upgrade successful! All premium features are now unlocked.';
+      const tier = this.licenseManager.getTier();
+      const tierLabel = tier === 'family' ? 'Family Photos' : tier === 'learning' ? 'Learning Plus' : 'All Access';
+      this.message = `Upgrade successful! ${tierLabel} is now unlocked.`;
       this.messageType = 'success';
       this.upgradeCode = '';
     } else {
-      this.message = 'Invalid upgrade code. Please check and try again.';
+      this.message = this.licenseManager.getLastError() || 'Invalid upgrade code. Please check and try again.';
       this.messageType = 'error';
     }
   }
@@ -245,6 +247,7 @@ export class AppUpgrade extends LitElement {
   private resetLicense() {
     if (confirm('Are you sure? This will reset the license and lock premium features.')) {
       this.licenseManager.resetLicense();
+      this.premiumManager.resetPremium();
       this.premiumManager.refreshStatus();
       this.isUpgraded = false;
       this.message = '';
@@ -270,7 +273,7 @@ export class AppUpgrade extends LitElement {
             <div class="success-icon">🎉</div>
             <div class="success-text">All Premium Features Unlocked</div>
             <div class="success-subtext">
-              Enjoy custom images, voice customization, cloud backup, and additional tabs!
+              Your upgrade key has been redeemed on this device.
             </div>
             <button class="reset-btn" @click=${this.resetLicense}>
               Reset License (Dev Only)
@@ -284,16 +287,16 @@ export class AppUpgrade extends LitElement {
       <div class="container">
         <div class="header">
           <h1>Unlock Premium Features</h1>
-          <p class="subtitle">Enter your upgrade code to unlock all premium features</p>
+          <p class="subtitle">Enter the one-time upgrade key provided after purchase</p>
         </div>
 
         <div class="upgrade-card">
           <div class="upgrade-title">What you'll get:</div>
           <ul class="features-list">
-            <li>Custom Images - Upload your own images</li>
-            <li>Voice Customization - Adjust speech settings</li>
-            <li>Additional Tabs - Create custom communication tabs</li>
-            <li>Cloud Backup - Save your progress safely</li>
+            <li>Family Photos key - Custom image uploads</li>
+            <li>Learning Plus key - Custom images, backup tools, and extra tabs</li>
+            <li>All Access key - All current premium features</li>
+            <li>Keys redeem once on this installed device</li>
           </ul>
         </div>
 
@@ -304,8 +307,8 @@ export class AppUpgrade extends LitElement {
         ` : ''}
 
         <div class="code-instructions">
-          <strong>How to use:</strong> Enter the upgrade code provided with your purchase
-          to unlock all premium features instantly.
+          <strong>How to use:</strong> After purchase, send the customer the APK and a matching upgrade key.
+          The app records the key as redeemed on that device after unlock.
         </div>
 
         <div class="input-section">
