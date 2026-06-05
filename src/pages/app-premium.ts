@@ -19,8 +19,11 @@ export class Premium extends LitElement {
   @state() private selectedTier: PremiumTier = 'learning';
   @state() private showPurchaseConfirm = false;
   @state() private purchaseMessage = '';
+  @state() private checkoutError = '';
+  @state() private isCheckingOut = false;
 
   private premiumManager = PremiumManager.getInstance();
+  private readonly stripeApiBase = String((import.meta as any).env.VITE_STRIPE_API_BASE || '').replace(/\/$/, '');
 
   private readonly tiers: TierOption[] = [
     {
@@ -232,6 +235,16 @@ export class Premium extends LitElement {
       line-height: 1.4;
     }
 
+    .error {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 0.5rem;
+      background: #fff1f2;
+      color: #9f1239;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
     .feature-panel {
       margin-top: 1rem;
       padding: 1rem;
@@ -334,7 +347,44 @@ export class Premium extends LitElement {
     this.showPurchaseConfirm = false;
   }
 
+  private async startStripeCheckout(): Promise<void> {
+    if (!this.stripeApiBase) {
+      this.premiumManager.simulatePremiumPurchase(this.selectedTier);
+      this.refreshPremiumState();
+      this.showPurchaseConfirm = false;
+      this.purchaseMessage = `${this.selectedTierOption.name} is active.`;
+      return;
+    }
+
+    this.checkoutError = '';
+    this.isCheckingOut = true;
+
+    try {
+      const response = await fetch(`${this.stripeApiBase}/api/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tier: this.selectedTier }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || 'Unable to start Stripe checkout.');
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      this.checkoutError = error instanceof Error ? error.message : 'Unable to start Stripe checkout.';
+      this.isCheckingOut = false;
+    }
+  }
+
   private confirmPurchase(): void {
+    void this.startStripeCheckout();
+  }
+
+  private simulatePurchaseForTesting(): void {
     this.premiumManager.simulatePremiumPurchase(this.selectedTier);
     this.refreshPremiumState();
     this.showPurchaseConfirm = false;
@@ -391,8 +441,11 @@ export class Premium extends LitElement {
           <a class="secondary-button" href=${resolveRouterPath('upgrade')}>Use Upgrade Code</a>
           <a class="secondary-button" href=${resolveRouterPath('settings')}>Later</a>
           <div class="note">
-            In production, this will connect to Google Play Billing. In this build it simulates the selected tier so the feature gates can be tested.
+            ${this.stripeApiBase
+              ? 'Secure checkout is handled by Stripe. After payment, CaydenJoy shows the APK download and upgrade key.'
+              : 'Stripe checkout is not configured for this build. The confirm screen can simulate the selected tier for local testing.'}
           </div>
+          ${this.checkoutError ? html`<div class="error">${this.checkoutError}</div>` : ''}
         </section>
 
         <section class="feature-panel">
@@ -410,12 +463,24 @@ export class Premium extends LitElement {
         <div class="modal-overlay" @click=${this.cancelPurchase}>
           <div class="modal" @click=${(event: Event) => event.stopPropagation()}>
             <h2>Confirm Tier</h2>
-            <p><strong>${selected.name}</strong> will be unlocked for ${selected.price} in this simulated test purchase.</p>
-            <p class="note">This is not a real charge. It verifies the premium flow inside the app.</p>
+            <p><strong>${selected.name}</strong> will be purchased for ${selected.price}.</p>
+            <p class="note">
+              ${this.stripeApiBase
+                ? 'You will be sent to Stripe Checkout. After payment, your upgrade key and APK download link will be shown.'
+                : 'Stripe is not configured in this build. Use simulation only for local testing.'}
+            </p>
             <div class="modal-buttons">
-              <button class="confirm-button" @click=${this.confirmPurchase}>Confirm</button>
+              <button class="confirm-button" @click=${this.confirmPurchase} ?disabled=${this.isCheckingOut}>
+                ${this.isCheckingOut ? 'Opening Stripe...' : this.stripeApiBase ? 'Continue to Stripe' : 'Simulate Unlock'}
+              </button>
               <button class="secondary-button" @click=${this.cancelPurchase}>Cancel</button>
             </div>
+            ${!this.stripeApiBase ? html`
+              <p class="note">
+                Local test shortcut:
+                <button class="secondary-button" @click=${this.simulatePurchaseForTesting}>Unlock Without Stripe</button>
+              </p>
+            ` : ''}
           </div>
         </div>
       ` : ''}

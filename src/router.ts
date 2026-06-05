@@ -28,6 +28,7 @@ import './pages/app-download.js';
 import './pages/app-admin.js';
 import './pages/app-progress.js';
 import './pages/app-feedback.js';
+import './pages/app-payment-success.js';
 import './pages/app-documentation.js';
 import './pages/app-privacy.js';
 import './pages/app-terms.js';
@@ -117,6 +118,11 @@ export const router = new Router({
         path: resolveRouterPath('download'),
         title: 'Download APK',
         render: () => html`<app-download></app-download>`
+      },
+      {
+        path: resolveRouterPath('payment-success'),
+        title: 'Payment Complete',
+        render: () => html`<app-payment-success></app-payment-success>`
       },
       {
         path: resolveRouterPath('admin'),

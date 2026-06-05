@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: caydenjoy-app
+    runtime: static
+    plan: free
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: VITE_STRIPE_API_BASE
+        value: https://caydenjoy-stripe.onrender.com
+      - key: VITE_APK_DOWNLOAD_URL
+        sync: false
+
+  - type: web
+    name: caydenjoy-stripe
+    runtime: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm run server
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_URL
+        value: https://caydenjoy-app.onrender.com
+      - key: CORS_ORIGIN
+        value: https://caydenjoy-app.onrender.com
+      - key: APK_DOWNLOAD_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_FAMILY
+        sync: false
+      - key: STRIPE_PRICE_LEARNING
+        sync: false
+      - key: STRIPE_PRICE_ALL_ACCESS
+        sync: false
