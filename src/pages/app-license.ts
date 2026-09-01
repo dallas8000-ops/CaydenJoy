@@ -69,6 +69,17 @@ export class AppLicense extends LitElement {
         </sl-card>
 
         <sl-card>
+          <h2>Symbol credits</h2>
+          <p>
+            Some core-word icons in the communication bar are
+            <a href="https://mulberrysymbols.org" target="_blank" rel="noopener noreferrer">Mulberry Symbols</a>
+            by Steve Lee, licensed under
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>.
+            See mulberrysymbols.org for the full symbol set and license terms.
+          </p>
+        </sl-card>
+
+        <sl-card>
           <h2>Upgrade keys</h2>
           <ul>
             <li>Family Photos keys start with CJF.</li>

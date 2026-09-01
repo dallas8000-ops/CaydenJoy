@@ -17,6 +17,11 @@ export class CustomImages extends LitElement {
   private premiumManager = PremiumManager.getInstance();
   private imagesManager = CustomImagesManager.getInstance();
   private fileInputRef: HTMLInputElement | null = null;
+  // Category the page opened on (default, or from a page's "Add photos" deep
+  // link). Uploads reset the form back to this instead of a hardcoded
+  // category, so uploading several photos in a row from a deep link doesn't
+  // silently drop back to "foods" after the first one.
+  private defaultCategory = 'foods';
 
   static styles = css`
     :host {
@@ -325,10 +330,29 @@ export class CustomImages extends LitElement {
     }
   `;
 
+  private static readonly VALID_CATEGORIES = [
+    'communication', 'foods', 'colors', 'places', 'family',
+    'numbers', 'objects', 'quick', 'activities', 'other',
+  ];
+
   connectedCallback(): void {
     super.connectedCallback();
     this.checkPremium();
     this.loadImages();
+    this.applyCategoryFromUrl();
+  }
+
+  private applyCategoryFromUrl(): void {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const category = params.get('category');
+      if (category && CustomImages.VALID_CATEGORIES.includes(category)) {
+        this.selectedCategory = category;
+        this.defaultCategory = category;
+      }
+    } catch (e) {
+      // Query param pre-selection is a convenience only; ignore failures.
+    }
   }
 
   private checkPremium(): void {
@@ -392,7 +416,7 @@ export class CustomImages extends LitElement {
         this.uploadMessage = `✅ Image "${this.imageName}" uploaded successfully!`;
         this.selectedFile = null;
         this.imageName = '';
-        this.selectedCategory = 'foods';
+        this.selectedCategory = this.defaultCategory;
         if (this.fileInputRef) {
           this.fileInputRef.value = '';
         }
@@ -489,7 +513,7 @@ export class CustomImages extends LitElement {
           ? html`
               <div class="locked-message">
                 <p>🔒 Custom image uploads are a premium feature</p>
-                <p>Unlock this feature for just <strong>$5.99</strong></p>
+                <p>Included starting with the <strong>Family Photos</strong> tier</p>
                 <button class="btn btn-primary" @click="${this.goToPremium}">
                   Upgrade to Premium
                 </button>
@@ -500,13 +524,17 @@ export class CustomImages extends LitElement {
                 <h2>📸 Upload New Image</h2>
 
                 <label>Category:</label>
-                <select class="category-select" @change="${(e: Event) => {
+                <select class="category-select" .value="${this.selectedCategory}" @change="${(e: Event) => {
                   this.selectedCategory = (e.target as HTMLSelectElement).value;
                 }}">
+                  <option value="communication">Communication</option>
                   <option value="foods">Foods</option>
                   <option value="colors">Colors</option>
                   <option value="places">Places</option>
                   <option value="family">Family</option>
+                  <option value="numbers">Numbers</option>
+                  <option value="objects">Puzzle Objects</option>
+                  <option value="quick">Quick Buttons</option>
                   <option value="activities">Activities</option>
                   <option value="other">Other</option>
                 </select>

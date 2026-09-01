@@ -1,6 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
+import { CustomImagesManager } from '../utils/custom-images-manager.js';
+import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { resolveRouterPath } from '../router';
 
 interface QuickButton {
   id: string;
@@ -9,9 +12,18 @@ interface QuickButton {
   color: string;
 }
 
+interface QuickPhoto {
+  id: string;
+  label: string;
+  imageUrl: string;
+}
+
 @customElement('app-home-enhanced')
 export class AppHomeEnhanced extends LitElement {
   private accessibilityManager = AccessibilityManager.getInstance();
+  private customImagesManager = CustomImagesManager.getInstance();
+  private sentenceBuilder = SentenceBuilder.getInstance();
+  private readonly CUSTOM_CATEGORY = 'quick';
 
   @state() buttons: QuickButton[] = [
     { id: 'yes', label: 'YES', emoji: '✅', color: '#00B894' },
@@ -20,6 +32,8 @@ export class AppHomeEnhanced extends LitElement {
     { id: 'food', label: 'FOOD', emoji: '🍽️', color: '#FDCB6E' },
     { id: 'tv', label: 'TV', emoji: '📺', color: '#0984E3' }
   ];
+
+  @state() quickPhotos: QuickPhoto[] = [];
 
   static styles = css`
     :host {
@@ -99,6 +113,66 @@ export class AppHomeEnhanced extends LitElement {
       line-height: 1.6;
     }
 
+    .add-photos-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0 auto 1.5rem;
+      padding: 0.6rem 1rem;
+      border-radius: 0.5rem;
+      background: #edf7f4;
+      color: #1f463b;
+      font-weight: 800;
+      text-decoration: none;
+      border: 2px dashed #2e8f74;
+      justify-content: center;
+    }
+
+    .quick-photos-section {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      color: #6C5CE7;
+      font-size: 1.2rem;
+      font-weight: 900;
+      margin-bottom: 0.75rem;
+    }
+
+    .quick-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.9rem;
+    }
+
+    .quick-photo-button {
+      display: grid;
+      grid-template-rows: 130px auto;
+      min-height: 200px;
+      padding: 0;
+      overflow: hidden;
+      border: 3px solid #e0d8f5;
+      border-radius: 0.75rem;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 3px 12px rgba(30, 42, 58, 0.1);
+    }
+
+    .quick-photo-button img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #dfe8f1;
+    }
+
+    .quick-photo-name {
+      padding: 0.7rem;
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: #243041;
+    }
+
     @media (max-width: 640px) {
       .buttons-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -123,8 +197,25 @@ export class AppHomeEnhanced extends LitElement {
     }
   `;
 
+  connectedCallback() {
+    super.connectedCallback();
+    this.loadQuickPhotos();
+  }
+
+  private loadQuickPhotos(): void {
+    this.quickPhotos = this.customImagesManager
+      .getImagesByCategory(this.CUSTOM_CATEGORY)
+      .map((img) => ({ id: img.id, label: img.name, imageUrl: img.dataUrl }));
+  }
+
   private handleButtonClick(button: QuickButton) {
     this.accessibilityManager.speakNow(button.label, 1);
+    this.sentenceBuilder.addWord({ label: button.label });
+  }
+
+  private handlePhotoClick(photo: QuickPhoto) {
+    this.accessibilityManager.speakNow(photo.label, 1);
+    this.sentenceBuilder.addWord({ label: photo.label, imageUrl: photo.imageUrl });
   }
 
   render() {
@@ -145,6 +236,22 @@ export class AppHomeEnhanced extends LitElement {
             </button>
           `)}
         </div>
+
+        <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's own quick-tap photos</a>
+
+        ${this.quickPhotos.length > 0 ? html`
+          <div class="quick-photos-section">
+            <div class="section-title">Cayden's Quick Photos</div>
+            <div class="quick-photo-grid">
+              ${this.quickPhotos.map((photo) => html`
+                <button class="quick-photo-button" @click=${() => this.handlePhotoClick(photo)}>
+                  <img src=${photo.imageUrl} alt=${photo.label} />
+                  <div class="quick-photo-name">${photo.label}</div>
+                </button>
+              `)}
+            </div>
+          </div>
+        ` : ''}
 
         <div class="info">
           <p><strong>How to use:</strong></p>

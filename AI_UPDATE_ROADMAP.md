@@ -34,6 +34,30 @@ Once a Node host is chosen, delete the losing configs (`render.yaml` and whichev
 
 ---
 
+## Phase 0.5 — Core AAC architecture fix (DONE this session)
+
+**What was broken:** every page (Communication, Foods, Colors, Numbers, Places, Family Puzzle, Quick) was a self-contained grid of atomic buttons — tap a card, hear one pre-written phrase, done. Nothing carried between pages, nothing generalized past the specific card photographed, and several pages (Family Puzzle, Quick) had no photo content or upload path at all — Family Puzzle's "Mom"/"Dad"/"Grandad" cards were stock photos of strangers, not the actual family. This is a digital flashcard app, not an AAC system — real AAC apps (Proloquo2Go, LAMP Words for Life, TouchChat, TD Snap) are built on a core/fringe vocabulary split with fixed-position core words that recombine with open-ended topic vocabulary to generate sentences, and consistent button position across the whole app ("motor planning") so word locations become muscle memory.
+
+**What changed:**
+- `src/utils/core-words.ts` — 20-word core vocabulary list (I, you, want, go, stop, help, like, look, eat, drink, play, give, more, little, finished, again, in, out, yes, no), Fitzgerald-Key color-coded by part of speech. Icons for words with a clear pictogram use [Mulberry Symbols](https://mulberrysymbols.org) (CC BY-SA 4.0, free, commercial-use-safe SVGs, self-hosted in `src/assets/symbols/core/`) — deliberately *not* ARASAAC, which is CC BY-NC-SA and would violate its NonCommercial clause the moment this app takes a Stripe payment.
+- `src/utils/sentence-builder.ts` — shared app-wide singleton. A tap anywhere (core word or a fringe-vocabulary photo card on any content page) appends to one sentence, which speaks as a whole via a Speak button — "I" + "want" (core bar) + "Banana" (Foods page) → "I want Banana."
+- `src/components/core-word-bar.ts` + wiring into `app-index.ts` — the core word grid and sentence strip are mounted once, fixed-position, present on every page, so word positions never move as the user navigates (the actual point of motor planning).
+- Every content page's tap handler (`app-foods-enhanced.ts`, `app-colors.ts`, `app-communication.ts`, `app-numbers.ts`, `app-places.ts`, `app-family-puzzle.ts`, `app-home-enhanced.ts`) now also feeds the shared sentence builder, not just speaking its own phrase in isolation.
+- `src/pages/app-license.ts` — added the Mulberry Symbols CC BY-SA attribution (license-required, and the only symbol library found that's both free and safe to use in a monetized app).
+
+**Also fixed while wiring this in (the original "≥10 images or upload" ask):**
+- `CustomImagesManager` (previously built but not connected to any page except its own standalone screen) is now wired into all seven nav-linked pages. Every page has either ≥10 default images or a working "📸 Add [child]'s real photos" upload link (most have both); each link deep-links the Custom Images page to the right category via `?category=`.
+- Family Puzzle and Quick — the two pages that had neither — now support real photo uploads (`family`/`objects`/`quick` categories), which matters more here than raw image count: a stock photo of a stranger labeled "Mom" is actively wrong for a real AAC learner, not just generic.
+- Numbers — was 20 cards recycling only 10 unique stock photos via modulo (so item 6 and item 16 showed the same photo), and none of the photos were verified to depict the stated quantity. Reduced to 10 unique, non-duplicated cards; the number badge (not the photo) is now the actual quantity signal, and the honest caveat about stock-photo quantities is in the README and the page's own subtitle rather than overclaimed.
+
+**Not done yet (explicitly deferred):**
+- Family/objects default photos are still stock strangers/objects until a caregiver uploads real ones through the new upload path — the fix here was making real replacement possible, not sourcing new stock photos (which wouldn't solve the actual problem anyway).
+- Colors' 6 default cards using unverifiable random-per-load `loremflickr` URLs (purple/pink/orange/brown/black/white) are unchanged — same reasoning as Numbers: not going to guess-replace with unverified specific photo URLs. The upload path is the real fix.
+- The core word list is a first pass (20 words). Expanding it, and adding question words (who/what/where — Mulberry has icons for these too), is straightforward follow-on work once this set is validated in actual use.
+- This lays real groundwork for Phase 2 below — `sentence-builder.ts` is exactly the shared state a local frequency/prediction model would sit on top of.
+
+---
+
 ## Phase 1 — AI board & vocabulary personalization
 
 Closest match to what's winning in this category right now (ollie AAC's on-demand board generation). CaydenJoy already has the right data shape for this: `CustomImagesManager` stores category-tagged images, and every page already has a tab system.
@@ -52,7 +76,7 @@ Closest match to what's winning in this category right now (ollie AAC's on-deman
 
 Closest match to Spoken/ChirpBot's next-word prediction. Split into two sub-phases deliberately, because a naive "call an LLM on every keystroke" design breaks the app's own stated offline-first PWA promise and adds live cost to every tap:
 
-**2a — Local frequency model (ship first, no server dependency):** track n-gram/bigram frequency of item selections directly on-device (which items get tapped in sequence). Surface the top 2-3 likely-next items as suggestion chips above the keyboard/board. Zero marginal cost, works fully offline, and is genuinely more relevant than a generic LLM suggestion because it's trained purely on this specific kid's actual usage.
+**2a — Local frequency model (ship first, no server dependency):** track n-gram/bigram frequency of item selections directly on-device (which items get tapped in sequence). Surface the top 2-3 likely-next items as suggestion chips above the keyboard/board. Zero marginal cost, works fully offline, and is genuinely more relevant than a generic LLM suggestion because it's trained purely on this specific kid's actual usage. `src/utils/sentence-builder.ts` (Phase 0.5) is exactly the shared state this sits on top of — it already sees every word tapped, in order, across every page; this phase is "add a frequency table and a suggestion-chip UI," not new plumbing.
 
 **2b — Cloud-assisted phrase completion (premium, optional):** for users with connectivity, send the current partial phrase + recent local frequency data to the same server used in Phase 1 for richer, context-aware completions. Same reasoning as above: premium-gated, server-mediated, never client-side keys.
 

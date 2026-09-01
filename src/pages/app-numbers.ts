@@ -2,12 +2,16 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
+import { CustomImagesManager } from '../utils/custom-images-manager.js';
+import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { resolveRouterPath } from '../router';
 
 interface NumberItem {
   id: string;
   number: number;
   label: string;
   imageUrl: string;
+  isCustom?: boolean;
 }
 
 interface NumberTab {
@@ -22,26 +26,32 @@ interface NumbersTabsData {
   activeTabId: string | null;
 }
 
-const quantityImages = [
-  'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=700&q=85',
-  'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=700&q=85',
-];
+// One unique photo per number, 1:1 - no reuse. These are themed photos next
+// to the number badge, NOT a claim that the photo shows that exact count of
+// objects (most stock photography can't be verified to show a precise
+// quantity). The number badge on each card is the actual quantity signal.
+// Real quantity-accurate photos (e.g. "6 crayons lined up") can be added
+// through the upload link below using the 'numbers' custom-image category.
+const numberImages: Record<number, string> = {
+  1: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=700&q=85',
+  2: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=700&q=85',
+  3: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=700&q=85',
+  4: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=700&q=85',
+  5: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=700&q=85',
+  6: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=700&q=85',
+  7: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=700&q=85',
+  8: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=700&q=85',
+  9: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=700&q=85',
+  10: 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=700&q=85',
+};
 
 @customElement('app-numbers')
 export class AppNumbers extends LitElement {
-  @state() numbers: NumberItem[] = Array.from({ length: 20 }, (_, i) => ({
+  @state() numbers: NumberItem[] = Array.from({ length: 10 }, (_, i) => ({
     id: `num-${i + 1}`,
     number: i + 1,
-    label: `${i + 1} item${i === 0 ? '' : 's'}`,
-    imageUrl: quantityImages[i % quantityImages.length],
+    label: `Number ${i + 1}`,
+    imageUrl: numberImages[i + 1],
   }));
 
   @state() selectedNumber: NumberItem | null = null;
@@ -49,11 +59,15 @@ export class AppNumbers extends LitElement {
   @state() activeTabId: string | null = null;
   @state() showNewTabModal = false;
   @state() newTabName = '';
+  @state() customNumbers: NumberItem[] = [];
 
   private premiumManager = PremiumManager.getInstance();
   private accessibilityManager = AccessibilityManager.getInstance();
+  private customImagesManager = CustomImagesManager.getInstance();
+  private sentenceBuilder = SentenceBuilder.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_numbers_tabs';
+  private readonly CUSTOM_CATEGORY = 'numbers';
 
   static styles = css`
     :host { display: block; min-height: 100vh; padding: 1.25rem; background: #f6f8fb; color: #243041; }
@@ -77,6 +91,8 @@ export class AppNumbers extends LitElement {
     .tab-button { border: 2px solid #c9d4e1; background: #fff; color: #243041; }
     .tab-button.active { background: #243041; border-color: #243041; color: #fff; }
     .add-tab-btn, .modal-btn-primary { border: 0; background: #2e8f74; color: #fff; }
+    .add-photos-link { display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; padding: 0.6rem 1rem; border-radius: 0.4rem; background: #edf7f4; color: #1f463b; font-weight: 800; text-decoration: none; border: 2px dashed #2e8f74; }
+    .custom-badge { display: inline-block; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border-radius: 0.3rem; background: #2e8f74; color: #fff; font-size: 0.7rem; font-weight: 900; vertical-align: middle; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal { width: 90%; max-width: 500px; padding: 1.5rem; border-radius: 0.5rem; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
     .modal-header { margin-bottom: 1rem; font-size: 1.35rem; font-weight: 900; color: #243041; }
@@ -89,13 +105,20 @@ export class AppNumbers extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.loadTabs();
+    this.loadCustomImages();
+  }
+
+  private loadCustomImages(): void {
+    this.customNumbers = this.customImagesManager
+      .getImagesByCategory(this.CUSTOM_CATEGORY)
+      .map((img) => ({ id: `custom-${img.id}`, number: 0, label: img.name, imageUrl: img.dataUrl, isCustom: true }));
   }
 
   private normalizeNumber(item: any, fallback: NumberItem): NumberItem {
     return {
       id: String(item?.id ?? fallback.id),
       number: Number(item?.number ?? fallback.number),
-      label: String(item?.label ?? `${item?.number ?? fallback.number} item${Number(item?.number ?? fallback.number) === 1 ? '' : 's'}`),
+      label: String(item?.label ?? `Number ${item?.number ?? fallback.number}`),
       imageUrl: String(item?.imageUrl ?? fallback.imageUrl),
     };
   }
@@ -155,19 +178,21 @@ export class AppNumbers extends LitElement {
 
   private selectNumber(item: NumberItem): void {
     this.selectedNumber = item;
-    this.accessibilityManager.speakNow(`${item.number}. ${item.label}.`, 0.9);
+    this.accessibilityManager.speakNow(item.isCustom ? item.label : `${item.number}. ${item.label}.`, 0.9);
+    this.sentenceBuilder.addWord({ label: item.isCustom ? item.label : String(item.number), imageUrl: item.imageUrl });
   }
 
   render() {
     const canAddTabs = this.premiumManager.canAddAdditionalTabs();
-    const currentNumbers = this.getActiveTab()?.numbers ?? this.numbers;
+    const currentNumbers: NumberItem[] = [...(this.getActiveTab()?.numbers ?? this.numbers), ...this.customNumbers];
     return html`
       <div class="container">
         <h1>Numbers</h1>
-        <p class="subtitle">Numbers shown with real quantity photos and clear number badges.</p>
-        ${this.selectedNumber ? html`<div class="selected-card"><img src=${this.selectedNumber.imageUrl} alt=${this.selectedNumber.label} /><div><div class="selected-value">${this.selectedNumber.number}</div><div class="selected-label">${this.selectedNumber.label}</div></div></div>` : ''}
+        <p class="subtitle">Tap a number to hear it. Add real, quantity-accurate photos of Cayden's own things below.</p>
+        <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real counting photos</a>
+        ${this.selectedNumber ? html`<div class="selected-card"><img src=${this.selectedNumber.imageUrl} alt=${this.selectedNumber.label} /><div><div class="selected-value">${this.selectedNumber.isCustom ? '' : this.selectedNumber.number}</div><div class="selected-label">${this.selectedNumber.label}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
-        <div class="number-grid">${currentNumbers.map((item) => html`<button class="number-button" @click=${() => this.selectNumber(item)}><span class="number-badge">${item.number}</span><img src=${item.imageUrl} alt=${item.label} /><div class="card-copy"><div class="number-name">${item.number}</div><div class="number-label">${item.label}</div></div></button>`)}</div>
+        <div class="number-grid">${currentNumbers.map((item) => html`<button class="number-button" @click=${() => this.selectNumber(item)}>${item.isCustom ? '' : html`<span class="number-badge">${item.number}</span>`}<img src=${item.imageUrl} alt=${item.label} /><div class="card-copy"><div class="number-name">${item.isCustom ? item.label : item.number}${item.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div><div class="number-label">${item.label}</div></div></button>`)}</div>
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

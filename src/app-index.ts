@@ -4,6 +4,7 @@ import { customElement, state } from 'lit/decorators.js';
 import './pages/app-home';
 import './components/header';
 import './components/footer';
+import './components/core-word-bar';
 import './styles/global.css';
 import { router } from './router';
 import { AccessibilityManager } from './utils/accessibility-manager';
@@ -19,7 +20,8 @@ export class AppIndex extends LitElement {
       flex-direction: column;
       min-height: 100vh;
       --app-shell-padding-x: 16px;
-      --app-shell-padding-top: 88px;
+      /* header height + persistent core-word-bar height (sentence strip + word row) */
+      --app-shell-padding-top: 200px;
       --app-shell-padding-bottom: 100px;
     }
 
@@ -76,14 +78,14 @@ export class AppIndex extends LitElement {
 
     @media (max-width: 900px) {
       :host {
-        --app-shell-padding-top: 112px;
+        --app-shell-padding-top: 226px;
       }
     }
 
     @media (max-width: 640px) {
       :host {
         --app-shell-padding-x: 12px;
-        --app-shell-padding-top: 128px;
+        --app-shell-padding-top: 248px;
         --app-shell-padding-bottom: 112px;
       }
 
@@ -154,6 +156,7 @@ export class AppIndex extends LitElement {
     // router config can be found in src/router.ts
     return html`
       <app-header></app-header>
+      <core-word-bar></core-word-bar>
       <main>
         ${router.render()}
       </main>

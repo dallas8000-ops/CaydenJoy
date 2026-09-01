@@ -2,6 +2,9 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
 import { ProgressManager } from '../utils/progress-manager.js';
+import { CustomImagesManager } from '../utils/custom-images-manager.js';
+import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { resolveRouterPath } from '../router';
 
 type PuzzleMode = 'family' | 'objects';
 
@@ -10,6 +13,7 @@ interface PuzzleCard {
   label: string;
   phrase: string;
   imageUrl: string;
+  isCustom?: boolean;
 }
 
 @customElement('app-family-puzzle')
@@ -20,9 +24,15 @@ export class AppFamilyPuzzle extends LitElement {
   @state() private selectedId: string | null = null;
   @state() private completedFamilyIds: string[] = [];
   @state() private completedObjectIds: string[] = [];
+  @state() private customFamilyCards: PuzzleCard[] = [];
+  @state() private customObjectCards: PuzzleCard[] = [];
 
   private accessibilityManager = AccessibilityManager.getInstance();
   private progressManager = ProgressManager.getInstance();
+  private customImagesManager = CustomImagesManager.getInstance();
+  private sentenceBuilder = SentenceBuilder.getInstance();
+  private readonly FAMILY_CATEGORY = 'family';
+  private readonly OBJECTS_CATEGORY = 'objects';
 
   private readonly familyCards: PuzzleCard[] = [
     {
@@ -223,6 +233,32 @@ export class AppFamilyPuzzle extends LitElement {
       color: #ffffff;
     }
 
+    .add-photos-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+      padding: 0.6rem 1rem;
+      border-radius: 0.5rem;
+      background: #edf7f4;
+      color: #1f463b;
+      font-weight: 800;
+      text-decoration: none;
+      border: 2px dashed #2e8f74;
+    }
+
+    .custom-badge {
+      display: inline-block;
+      margin-left: 0.4rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.3rem;
+      background: #2e8f74;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 900;
+      vertical-align: middle;
+    }
+
     .puzzle-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -300,11 +336,23 @@ export class AppFamilyPuzzle extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this.loadCustomImages();
     this.speakCurrentPrompt();
   }
 
+  private loadCustomImages(): void {
+    this.customFamilyCards = this.customImagesManager
+      .getImagesByCategory(this.FAMILY_CATEGORY)
+      .map((img) => ({ id: `custom-${img.id}`, label: img.name, phrase: `${img.name}.`, imageUrl: img.dataUrl, isCustom: true }));
+    this.customObjectCards = this.customImagesManager
+      .getImagesByCategory(this.OBJECTS_CATEGORY)
+      .map((img) => ({ id: `custom-${img.id}`, label: img.name, phrase: `${img.name}.`, imageUrl: img.dataUrl, isCustom: true }));
+  }
+
   private get activeCards(): PuzzleCard[] {
-    return this.mode === 'family' ? this.familyCards : this.objectCards;
+    return this.mode === 'family'
+      ? [...this.familyCards, ...this.customFamilyCards]
+      : [...this.objectCards, ...this.customObjectCards];
   }
 
   private get completedIds(): string[] {
@@ -340,6 +388,7 @@ export class AppFamilyPuzzle extends LitElement {
       this.progressManager.log('activity', `Puzzle selected: ${card.label}`, card.phrase);
       this.markComplete(card.id);
       this.speak(`Yes. ${card.phrase}`);
+      this.sentenceBuilder.addWord({ label: card.label, imageUrl: card.imageUrl });
       this.advanceTarget();
       return;
     }
@@ -389,7 +438,7 @@ export class AppFamilyPuzzle extends LitElement {
       >
         <img src=${card.imageUrl} alt=${card.label} />
         <div class="card-copy">
-          <div class="label">${card.label}</div>
+          <div class="label">${card.label}${card.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div>
           <div class="status">${completed ? 'Found' : 'Tap to choose'}</div>
         </div>
       </button>
@@ -397,6 +446,8 @@ export class AppFamilyPuzzle extends LitElement {
   }
 
   render() {
+    const customCategory = this.mode === 'family' ? this.FAMILY_CATEGORY : this.OBJECTS_CATEGORY;
+    const addPhotosLabel = this.mode === 'family' ? "Add Cayden's real family photos" : "Add Cayden's real object photos";
     return html`
       <div class="shell">
         <div class="topbar">
@@ -406,6 +457,8 @@ export class AppFamilyPuzzle extends LitElement {
           </div>
           <button class="reset-button" @click=${this.resetActivity}>Reset</button>
         </div>
+
+        <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${customCategory}">📸 ${addPhotosLabel}</a>
 
         <div class="safety-strip">
           <button class="safety-button help" @click=${() => this.speak('Help please.')}>Help</button>

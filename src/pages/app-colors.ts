@@ -2,6 +2,9 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
+import { CustomImagesManager } from '../utils/custom-images-manager.js';
+import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { resolveRouterPath } from '../router';
 
 interface ColorItem {
   id: string;
@@ -9,6 +12,7 @@ interface ColorItem {
   hex: string;
   imageUrl: string;
   example: string;
+  isCustom?: boolean;
 }
 
 interface ColorTab {
@@ -43,11 +47,15 @@ export class AppColors extends LitElement {
   @state() activeTabId: string | null = null;
   @state() showNewTabModal = false;
   @state() newTabName = '';
+  @state() customColors: ColorItem[] = [];
 
   private premiumManager = PremiumManager.getInstance();
   private accessibilityManager = AccessibilityManager.getInstance();
+  private customImagesManager = CustomImagesManager.getInstance();
+  private sentenceBuilder = SentenceBuilder.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_colors_tabs';
+  private readonly CUSTOM_CATEGORY = 'colors';
 
   static styles = css`
     :host { display: block; min-height: 100vh; padding: 1.25rem; background: #f6f8fb; color: #243041; }
@@ -71,6 +79,8 @@ export class AppColors extends LitElement {
     .tab-button { border: 2px solid #c9d4e1; background: #fff; color: #243041; }
     .tab-button.active { background: #243041; border-color: #243041; color: #fff; }
     .add-tab-btn, .modal-btn-primary { border: 0; background: #2e8f74; color: #fff; }
+    .add-photos-link { display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; padding: 0.6rem 1rem; border-radius: 0.4rem; background: #edf7f4; color: #1f463b; font-weight: 800; text-decoration: none; border: 2px dashed #2e8f74; }
+    .custom-badge { display: inline-block; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border-radius: 0.3rem; background: #2e8f74; color: #fff; font-size: 0.7rem; font-weight: 900; vertical-align: middle; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal { width: 90%; max-width: 500px; padding: 1.5rem; border-radius: 0.5rem; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
     .modal-header { margin-bottom: 1rem; font-size: 1.35rem; font-weight: 900; color: #243041; }
@@ -83,6 +93,13 @@ export class AppColors extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.loadTabs();
+    this.loadCustomImages();
+  }
+
+  private loadCustomImages(): void {
+    this.customColors = this.customImagesManager
+      .getImagesByCategory(this.CUSTOM_CATEGORY)
+      .map((img) => ({ id: `custom-${img.id}`, name: img.name, hex: '#6b7280', example: img.name, imageUrl: img.dataUrl, isCustom: true }));
   }
 
   private normalizeColor(color: any, fallback: ColorItem): ColorItem {
@@ -151,18 +168,20 @@ export class AppColors extends LitElement {
   private selectColor(color: ColorItem): void {
     this.selectedColor = color;
     this.accessibilityManager.speakNow(`${color.name}. ${color.example}.`, 0.9);
+    this.sentenceBuilder.addWord({ label: color.name, imageUrl: color.imageUrl });
   }
 
   render() {
     const canAddTabs = this.premiumManager.canAddAdditionalTabs();
-    const currentColors = this.getActiveTab()?.colors ?? this.colors;
+    const currentColors = [...(this.getActiveTab()?.colors ?? this.colors), ...this.customColors];
     return html`
       <div class="container">
         <h1>Colors</h1>
         <p class="subtitle">Real objects help connect colors to daily life.</p>
+        <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real color photos</a>
         ${this.selectedColor ? html`<div class="selected-card" style="--selected-color: ${this.selectedColor.hex}"><img src=${this.selectedColor.imageUrl} alt=${this.selectedColor.example} /><div><div class="selected-name">${this.selectedColor.name}</div><div class="selected-example">${this.selectedColor.example}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
-        <div class="photo-grid">${currentColors.map((color) => html`<button class="photo-button" style="--color: ${color.hex}" @click=${() => this.selectColor(color)}><img src=${color.imageUrl} alt=${color.example} /><div class="color-strip" aria-hidden="true"></div><div class="card-copy"><div class="photo-name">${color.name}</div><div class="photo-example">${color.example}</div></div></button>`)}</div>
+        <div class="photo-grid">${currentColors.map((color) => html`<button class="photo-button" style="--color: ${color.hex}" @click=${() => this.selectColor(color)}><img src=${color.imageUrl} alt=${color.example} /><div class="color-strip" aria-hidden="true"></div><div class="card-copy"><div class="photo-name">${color.name}${color.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div><div class="photo-example">${color.example}</div></div></button>`)}</div>
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

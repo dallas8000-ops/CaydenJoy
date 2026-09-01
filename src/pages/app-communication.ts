@@ -3,14 +3,18 @@ import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
 import { ProgressManager } from '../utils/progress-manager.js';
+import { CustomImagesManager } from '../utils/custom-images-manager.js';
+import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { resolveRouterPath } from '../router';
 
 interface RequestCard {
-  id: number;
+  id: number | string;
   text: string;
   phrase: string;
   category: string;
   color: string;
   imageUrl: string;
+  isCustom?: boolean;
 }
 
 interface Tab {
@@ -32,12 +36,16 @@ export class AppCommunication extends LitElement {
   @state() activeTabId: string | null = null;
   @state() showNewTabModal = false;
   @state() newTabName = '';
+  @state() customRequests: RequestCard[] = [];
 
   private premiumManager = PremiumManager.getInstance();
   private accessibilityManager = AccessibilityManager.getInstance();
   private progressManager = ProgressManager.getInstance();
+  private customImagesManager = CustomImagesManager.getInstance();
+  private sentenceBuilder = SentenceBuilder.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_communication_tabs';
+  private readonly CUSTOM_CATEGORY = 'communication';
 
   private requests: RequestCard[] = [
     {
@@ -243,6 +251,32 @@ export class AppCommunication extends LitElement {
       color: #ffffff;
     }
 
+    .add-photos-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+      padding: 0.6rem 1rem;
+      border-radius: 0.4rem;
+      background: #edf7f4;
+      color: #1f463b;
+      font-weight: 800;
+      text-decoration: none;
+      border: 2px dashed #2e8f74;
+    }
+
+    .custom-badge {
+      display: inline-block;
+      margin-left: 0.4rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.3rem;
+      background: #2e8f74;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 900;
+      vertical-align: middle;
+    }
+
     .requests-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -404,6 +438,21 @@ export class AppCommunication extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.loadTabs();
+    this.loadCustomImages();
+  }
+
+  private loadCustomImages(): void {
+    this.customRequests = this.customImagesManager
+      .getImagesByCategory(this.CUSTOM_CATEGORY)
+      .map((img) => ({
+        id: `custom-${img.id}`,
+        text: img.name,
+        phrase: `I want ${img.name}.`,
+        category: "Cayden's",
+        color: '#2e8f74',
+        imageUrl: img.dataUrl,
+        isCustom: true,
+      }));
   }
 
   private normalizeRequest(request: any, fallback: RequestCard): RequestCard {
@@ -522,6 +571,7 @@ export class AppCommunication extends LitElement {
       request.phrase
     );
     this.accessibilityManager.speakNow(request.phrase, 0.9);
+    this.sentenceBuilder.addWord({ label: request.text, imageUrl: request.imageUrl });
   }
 
   private clearRequest() {
@@ -532,7 +582,7 @@ export class AppCommunication extends LitElement {
   render() {
     const activeTab = this.getActiveTab();
     const canAddTabs = this.premiumManager.canAddAdditionalTabs();
-    const currentRequests = activeTab ? activeTab.requests : this.requests;
+    const currentRequests: RequestCard[] = [...(activeTab ? activeTab.requests : this.requests), ...this.customRequests];
 
     return html`
       <div class="container">
@@ -540,6 +590,8 @@ export class AppCommunication extends LitElement {
           <h1>CaydenJoy Communication</h1>
           <p class="subtitle">Tap a realistic picture to speak a daily need.</p>
         </div>
+
+        <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real photos</a>
 
         ${this.activeRequest ? html`
           <div class="active-request">
@@ -572,7 +624,7 @@ export class AppCommunication extends LitElement {
             >
               <img src=${request.imageUrl} alt=${request.text} />
               <div class="request-copy">
-                <div class="request-text">${request.text}</div>
+                <div class="request-text">${request.text}${request.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div>
                 <div class="request-category">${request.category}</div>
               </div>
             </button>

@@ -2,11 +2,15 @@ import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
+import { CustomImagesManager } from '../utils/custom-images-manager.js';
+import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { resolveRouterPath } from '../router';
 
 interface FoodItem {
   id: string;
   name: string;
   imageUrl: string;
+  isCustom?: boolean;
 }
 
 interface FoodTab {
@@ -43,11 +47,15 @@ export class AppFoodsEnhanced extends LitElement {
   @state() activeTabId: string | null = null;
   @state() showNewTabModal = false;
   @state() newTabName = '';
+  @state() customFoods: FoodItem[] = [];
 
   private premiumManager = PremiumManager.getInstance();
   private accessibilityManager = AccessibilityManager.getInstance();
+  private customImagesManager = CustomImagesManager.getInstance();
+  private sentenceBuilder = SentenceBuilder.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_foods_tabs';
+  private readonly CUSTOM_CATEGORY = 'foods';
 
   static styles = css`
     :host { display: block; min-height: 100vh; padding: 1.25rem; background: #f6f8fb; color: #243041; }
@@ -67,6 +75,8 @@ export class AppFoodsEnhanced extends LitElement {
     .tab-button { border: 2px solid #c9d4e1; background: #fff; color: #243041; }
     .tab-button.active { background: #243041; border-color: #243041; color: #fff; }
     .add-tab-btn, .modal-btn-primary { border: 0; background: #2e8f74; color: #fff; }
+    .add-photos-link { display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 1rem; padding: 0.6rem 1rem; border-radius: 0.4rem; background: #edf7f4; color: #1f463b; font-weight: 800; text-decoration: none; border: 2px dashed #2e8f74; }
+    .custom-badge { display: inline-block; margin-left: 0.4rem; padding: 0.1rem 0.4rem; border-radius: 0.3rem; background: #2e8f74; color: #fff; font-size: 0.7rem; font-weight: 900; vertical-align: middle; }
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     .modal { width: 90%; max-width: 500px; padding: 1.5rem; border-radius: 0.5rem; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
     .modal-header { margin-bottom: 1rem; font-size: 1.35rem; font-weight: 900; color: #243041; }
@@ -79,6 +89,13 @@ export class AppFoodsEnhanced extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.loadTabs();
+    this.loadCustomImages();
+  }
+
+  private loadCustomImages(): void {
+    this.customFoods = this.customImagesManager
+      .getImagesByCategory(this.CUSTOM_CATEGORY)
+      .map((img) => ({ id: `custom-${img.id}`, name: img.name, imageUrl: img.dataUrl, isCustom: true }));
   }
 
   private normalizeFood(food: any, fallback: FoodItem): FoodItem {
@@ -145,18 +162,20 @@ export class AppFoodsEnhanced extends LitElement {
   private selectFood(food: FoodItem): void {
     this.selectedFood = food;
     this.accessibilityManager.speakNow(food.name, 0.9);
+    this.sentenceBuilder.addWord({ label: food.name, imageUrl: food.imageUrl });
   }
 
   render() {
     const canAddTabs = this.premiumManager.canAddAdditionalTabs();
-    const currentFoods = this.getActiveTab()?.foods ?? this.foods;
+    const currentFoods = [...(this.getActiveTab()?.foods ?? this.foods), ...this.customFoods];
     return html`
       <div class="container">
         <h1>Foods</h1>
         <p class="subtitle">Detailed real food photos for recognition and choice-making.</p>
+        <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real food photos</a>
         ${this.selectedFood ? html`<div class="selected-card"><img src=${this.selectedFood.imageUrl} alt=${this.selectedFood.name} /><div class="selected-name">${this.selectedFood.name}</div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
-        <div class="photo-grid">${currentFoods.map((food) => html`<button class="photo-button" @click=${() => this.selectFood(food)}><img src=${food.imageUrl} alt=${food.name} /><div class="photo-name">${food.name}</div></button>`)}</div>
+        <div class="photo-grid">${currentFoods.map((food) => html`<button class="photo-button" @click=${() => this.selectFood(food)}><img src=${food.imageUrl} alt=${food.name} /><div class="photo-name">${food.name}${food.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div></button>`)}</div>
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;
