@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
+import { AccessibilityManager } from '../utils/accessibility-manager.js';
 
 interface NumberItem {
   id: string;
@@ -50,6 +51,7 @@ export class AppNumbers extends LitElement {
   @state() newTabName = '';
 
   private premiumManager = PremiumManager.getInstance();
+  private accessibilityManager = AccessibilityManager.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_numbers_tabs';
 
@@ -151,6 +153,11 @@ export class AppNumbers extends LitElement {
     this.saveTabs();
   }
 
+  private selectNumber(item: NumberItem): void {
+    this.selectedNumber = item;
+    this.accessibilityManager.speakNow(`${item.number}. ${item.label}.`, 0.9);
+  }
+
   render() {
     const canAddTabs = this.premiumManager.canAddAdditionalTabs();
     const currentNumbers = this.getActiveTab()?.numbers ?? this.numbers;
@@ -160,7 +167,7 @@ export class AppNumbers extends LitElement {
         <p class="subtitle">Numbers shown with real quantity photos and clear number badges.</p>
         ${this.selectedNumber ? html`<div class="selected-card"><img src=${this.selectedNumber.imageUrl} alt=${this.selectedNumber.label} /><div><div class="selected-value">${this.selectedNumber.number}</div><div class="selected-label">${this.selectedNumber.label}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
-        <div class="number-grid">${currentNumbers.map((item) => html`<button class="number-button" @click=${() => this.selectedNumber = item}><span class="number-badge">${item.number}</span><img src=${item.imageUrl} alt=${item.label} /><div class="card-copy"><div class="number-name">${item.number}</div><div class="number-label">${item.label}</div></div></button>`)}</div>
+        <div class="number-grid">${currentNumbers.map((item) => html`<button class="number-button" @click=${() => this.selectNumber(item)}><span class="number-badge">${item.number}</span><img src=${item.imageUrl} alt=${item.label} /><div class="card-copy"><div class="number-name">${item.number}</div><div class="number-label">${item.label}</div></div></button>`)}</div>
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

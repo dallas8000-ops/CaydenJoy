@@ -2,9 +2,16 @@
  * License/Upgrade Code Manager
  * Handles tiered upgrade codes and local one-time redemption.
  *
- * Note: an APK alone cannot enforce one-time use across every device. This
- * prevents reusing a key on the same install. Global one-time enforcement needs
- * Google Play Billing or a small activation server.
+ * SECURITY: Code validity is verified server-side (see server/stripe-server.js,
+ * POST /api/verify-code). The checksum algorithm and legacy code list must never
+ * live in this file or any other client-bundled module — this file used to embed
+ * both directly, which let anyone read the shipped JS bundle and mint unlimited
+ * valid upgrade keys offline. Do not reintroduce that pattern.
+ *
+ * Note: redemption ("has this code been used") is still tracked only in
+ * localStorage on this device. An APK/PWA install alone cannot enforce
+ * one-time use across every device/install. Global one-time enforcement needs
+ * the server to persist redeemed codes (see PROJECT_STATUS roadmap).
  */
 
 export type LicenseTier = 'family' | 'learning' | 'allAccess';
@@ -16,33 +23,15 @@ export interface LicenseStatus {
   upgradeCode?: string;
 }
 
-type UpgradeCodeValidation =
-  | { valid: true; tier: LicenseTier; normalizedCode: string }
-  | { valid: false; reason: string };
+interface ServerVerifyResponse {
+  valid: boolean;
+  tier?: LicenseTier;
+  normalizedCode?: string;
+  reason?: string;
+}
 
 const LICENSE_STORAGE_KEY = 'caydenjoy_license_status';
 const REDEEMED_CODES_KEY = 'caydenjoy_redeemed_upgrade_codes';
-const CODE_SALT = 'CAYDENJOY-APK-UPGRADE-2026';
-
-const TIER_PREFIXES: Record<string, LicenseTier> = {
-  CJF: 'family',
-  CJL: 'learning',
-  CJA: 'allAccess',
-};
-
-// Legacy codes remain supported as All Access, but are still marked as redeemed
-// after use on the device.
-const LEGACY_UPGRADE_CODES = [
-  'CyberCop3158',
-  'CAYDENJOY-PREMIUM-2024',
-  'CAYDENJOY-UNLOCK-ALL',
-  'PREMIUM-UNLOCK-2025',
-  'TEST-CODE-001',
-  'EVAL-VERSION-2026',
-  'DEMO-FULL-ACCESS',
-  'TRIAL-UNLIMITED',
-  'SPECIAL-OFFER-50'
-].map(code => code.toUpperCase());
 
 export class LicenseManager {
   private static instance: LicenseManager;
@@ -64,21 +53,13 @@ export class LicenseManager {
     tier: 'none'
   };
 
+  private get verifyEndpoint(): string {
+    const base = String((import.meta as any).env.VITE_STRIPE_API_BASE || '').replace(/\/$/, '');
+    return base ? `${base}/api/verify-code` : '';
+  }
+
   static normalizeCode(code: string): string {
     return code.trim().toUpperCase().replace(/\s+/g, '').replace(/_/g, '-');
-  }
-
-  static hashCode(value: string): string {
-    let hash = 2166136261;
-    for (let index = 0; index < value.length; index += 1) {
-      hash ^= value.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(36).toUpperCase().padStart(7, '0');
-  }
-
-  static checksumFor(prefix: string, serial: string): string {
-    return LicenseManager.hashCode(`${CODE_SALT}:${prefix}:${serial}`).slice(0, 5);
   }
 
   private loadLicense(): void {
@@ -100,7 +81,7 @@ export class LicenseManager {
     }
   }
 
-  private getRedeemedCodeHashes(): string[] {
+  private getRedeemedCodes(): string[] {
     try {
       const stored = localStorage.getItem(REDEEMED_CODES_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -110,72 +91,65 @@ export class LicenseManager {
     }
   }
 
-  private markCodeRedeemed(code: string): void {
-    const hash = LicenseManager.hashCode(code);
-    const redeemed = new Set(this.getRedeemedCodeHashes());
-    redeemed.add(hash);
+  private markCodeRedeemed(normalizedCode: string): void {
+    const redeemed = new Set(this.getRedeemedCodes());
+    redeemed.add(normalizedCode);
     localStorage.setItem(REDEEMED_CODES_KEY, JSON.stringify([...redeemed]));
   }
 
-  private hasCodeBeenRedeemed(code: string): boolean {
-    return this.getRedeemedCodeHashes().includes(LicenseManager.hashCode(code));
-  }
-
-  private validateGeneratedCode(normalizedCode: string): UpgradeCodeValidation {
-    const parts = normalizedCode.split('-');
-    if (parts.length !== 4) {
-      return { valid: false, reason: 'Code format should look like CJA-XXXX-XXXX-XXXXX' };
-    }
-
-    const [prefix, first, second, checksum] = parts;
-    const tier = TIER_PREFIXES[prefix];
-    if (!tier) {
-      return { valid: false, reason: 'Unknown upgrade tier prefix' };
-    }
-
-    const serial = `${first}-${second}`;
-    const expectedChecksum = LicenseManager.checksumFor(prefix, serial);
-    if (checksum !== expectedChecksum) {
-      return { valid: false, reason: 'Upgrade key checksum does not match' };
-    }
-
-    return { valid: true, tier, normalizedCode };
-  }
-
-  private validateUpgradeCode(code: string): UpgradeCodeValidation {
-    const normalizedCode = LicenseManager.normalizeCode(code);
-
-    if (LEGACY_UPGRADE_CODES.includes(normalizedCode)) {
-      return { valid: true, tier: 'allAccess', normalizedCode };
-    }
-
-    return this.validateGeneratedCode(normalizedCode);
+  private hasCodeBeenRedeemed(normalizedCode: string): boolean {
+    return this.getRedeemedCodes().includes(normalizedCode);
   }
 
   /**
-   * Verify and apply an upgrade code.
-   * @param code The upgrade code entered by user.
-   * @returns true if code is valid and upgrade successful, false otherwise.
+   * Verify a code against the server and, if valid and unused on this device,
+   * apply the upgrade. Async because validity is no longer computable client-side.
    */
-  verifyAndApplyCode(code: string): boolean {
+  async verifyAndApplyCode(code: string): Promise<boolean> {
     this.lastError = '';
-    const result = this.validateUpgradeCode(code);
 
-    if (!result.valid) {
-      this.lastError = result.reason;
+    if (!code.trim()) {
+      this.lastError = 'Please enter an upgrade code';
       return false;
     }
 
-    if (this.hasCodeBeenRedeemed(result.normalizedCode)) {
+    const endpoint = this.verifyEndpoint;
+    if (!endpoint) {
+      this.lastError = 'Upgrade verification is not configured for this build.';
+      return false;
+    }
+
+    const normalizedCode = LicenseManager.normalizeCode(code);
+
+    if (this.hasCodeBeenRedeemed(normalizedCode)) {
       this.lastError = 'This upgrade key has already been redeemed on this device';
+      return false;
+    }
+
+    let result: ServerVerifyResponse;
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: normalizedCode }),
+      });
+      result = await response.json();
+    } catch (e) {
+      console.error('Error verifying upgrade code:', e);
+      this.lastError = 'Could not reach the server to verify your code. Check your connection and try again.';
+      return false;
+    }
+
+    if (!result.valid || !result.tier) {
+      this.lastError = result.reason || 'Invalid upgrade code. Please check and try again.';
       return false;
     }
 
     this.status.isUpgraded = true;
     this.status.tier = result.tier;
     this.status.upgradeDate = Date.now();
-    this.status.upgradeCode = result.normalizedCode;
-    this.markCodeRedeemed(result.normalizedCode);
+    this.status.upgradeCode = result.normalizedCode || normalizedCode;
+    this.markCodeRedeemed(result.normalizedCode || normalizedCode);
     this.saveLicense();
 
     return true;

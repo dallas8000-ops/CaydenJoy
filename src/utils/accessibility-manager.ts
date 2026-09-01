@@ -22,12 +22,20 @@ export const DEFAULT_SETTINGS: AccessibilitySettings = {
   fontSize: 'medium',
   enableAnimations: true,
   enableSounds: true,
-  enableTextToSpeech: false,
+  enableTextToSpeech: true,
   enableReducedMotion: false,
   highlightInteractive: false,
 };
 
 const STORAGE_KEY = 'caydenjoy_accessibility_settings';
+
+declare global {
+  interface Window {
+    CaydenJoyVoice?: {
+      speak: (text: string, rate: number) => void;
+    };
+  }
+}
 
 export class AccessibilityManager {
   private static instance: AccessibilityManager;
@@ -35,6 +43,7 @@ export class AccessibilityManager {
   private listeners: Set<(settings: AccessibilitySettings) => void> = new Set();
   private audioContext?: AudioContext;
   private audioUnlockAttached = false;
+  private voicesReady = false;
 
   private constructor() {
     this.loadSettings();
@@ -153,31 +162,57 @@ export class AccessibilityManager {
     window.addEventListener('keydown', unlock, { passive: true });
   }
 
+  private prepareSpeech(): void {
+    if (!('speechSynthesis' in window)) return;
+
+    window.speechSynthesis.resume();
+
+    if (!this.voicesReady) {
+      const voices = window.speechSynthesis.getVoices();
+      this.voicesReady = voices.length > 0;
+      if (!this.voicesReady) {
+        window.speechSynthesis.addEventListener('voiceschanged', () => {
+          this.voicesReady = true;
+        }, { once: true });
+      }
+    }
+  }
+
   speak(text: string, rate: number = 1): void {
     if (!this.settings.enableTextToSpeech) return;
     this.speakNow(text, rate);
   }
 
   speakNow(text: string, rate: number = 1): void {
+    if (window.CaydenJoyVoice) {
+      window.CaydenJoyVoice.speak(text, rate);
+      return;
+    }
+
     if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-      this.playSound('error');
       return;
     }
 
     try {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
-      window.speechSynthesis.resume();
+      this.prepareSpeech();
 
       const utterance = new SpeechSynthesisUtterance(text);
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith('en'));
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+      utterance.lang = englishVoice?.lang ?? 'en-US';
       utterance.rate = rate;
       utterance.pitch = 1;
       utterance.volume = 1;
 
       window.speechSynthesis.speak(utterance);
+      setTimeout(() => window.speechSynthesis.resume(), 0);
     } catch (e) {
       console.error('Text-to-speech failed:', e);
-      this.playSound('error');
     }
   }
 
@@ -188,10 +223,16 @@ export class AccessibilityManager {
     const audioContext = this.getAudioContext();
     if (!audioContext) return;
 
+    void this.playTone(audioContext, type);
+  }
+
+  private async playTone(audioContext: AudioContext, type: 'success' | 'error' | 'click'): Promise<void> {
     if (audioContext.state === 'suspended') {
-      audioContext.resume().catch(() => {
-        // Continue anyway; some environments resume on next interaction.
-      });
+      try {
+        await audioContext.resume();
+      } catch {
+        return;
+      }
     }
 
     const oscillator = audioContext.createOscillator();

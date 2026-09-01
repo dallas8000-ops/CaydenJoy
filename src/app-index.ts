@@ -106,6 +106,8 @@ export class AppIndex extends LitElement {
   `;
 
   firstUpdated() {
+    this.clearTabletBuildCache();
+
     // Initialize accessibility manager
     router.addEventListener('route-changed', () => {
       if ("startViewTransition" in document) {
@@ -117,8 +119,28 @@ export class AppIndex extends LitElement {
     });
   }
 
+  private clearTabletBuildCache(): void {
+    const isTabletBuild = (import.meta as any).env.VITE_DEV_MODE === 'true';
+    if (!isTabletBuild) return;
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => registrations.forEach((registration) => registration.unregister()))
+        .catch(() => {
+          // Cache cleanup is best-effort; the app should still run without it.
+        });
+    }
+
+    if ('caches' in window) {
+      caches.keys()
+        .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+        .catch(() => {
+          // Cache cleanup is best-effort; the app should still run without it.
+        });
+    }
+  }
+
   private handleEmergency() {
-    this.accessibilityManager.playSound('error');
     this.accessibilityManager.speakNow('HELP! EMERGENCY!', 0.85);
 
     // Visual feedback

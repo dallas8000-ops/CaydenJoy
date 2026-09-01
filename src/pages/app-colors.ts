@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
+import { AccessibilityManager } from '../utils/accessibility-manager.js';
 
 interface ColorItem {
   id: string;
@@ -44,6 +45,7 @@ export class AppColors extends LitElement {
   @state() newTabName = '';
 
   private premiumManager = PremiumManager.getInstance();
+  private accessibilityManager = AccessibilityManager.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_colors_tabs';
 
@@ -146,6 +148,11 @@ export class AppColors extends LitElement {
     this.saveTabs();
   }
 
+  private selectColor(color: ColorItem): void {
+    this.selectedColor = color;
+    this.accessibilityManager.speakNow(`${color.name}. ${color.example}.`, 0.9);
+  }
+
   render() {
     const canAddTabs = this.premiumManager.canAddAdditionalTabs();
     const currentColors = this.getActiveTab()?.colors ?? this.colors;
@@ -155,7 +162,7 @@ export class AppColors extends LitElement {
         <p class="subtitle">Real objects help connect colors to daily life.</p>
         ${this.selectedColor ? html`<div class="selected-card" style="--selected-color: ${this.selectedColor.hex}"><img src=${this.selectedColor.imageUrl} alt=${this.selectedColor.example} /><div><div class="selected-name">${this.selectedColor.name}</div><div class="selected-example">${this.selectedColor.example}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
-        <div class="photo-grid">${currentColors.map((color) => html`<button class="photo-button" style="--color: ${color.hex}" @click=${() => this.selectedColor = color}><img src=${color.imageUrl} alt=${color.example} /><div class="color-strip" aria-hidden="true"></div><div class="card-copy"><div class="photo-name">${color.name}</div><div class="photo-example">${color.example}</div></div></button>`)}</div>
+        <div class="photo-grid">${currentColors.map((color) => html`<button class="photo-button" style="--color: ${color.hex}" @click=${() => this.selectColor(color)}><img src=${color.imageUrl} alt=${color.example} /><div class="color-strip" aria-hidden="true"></div><div class="card-copy"><div class="photo-name">${color.name}</div><div class="photo-example">${color.example}</div></div></button>`)}</div>
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

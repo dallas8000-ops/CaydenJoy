@@ -12,6 +12,7 @@ export class AppUpgrade extends LitElement {
   @state() message: string = '';
   @state() messageType: 'success' | 'error' | '' = '';
   @state() isUpgraded: boolean = false;
+  @state() isVerifying: boolean = false;
 
   private readonly licenseManager = LicenseManager.getInstance();
   private readonly premiumManager = PremiumManager.getInstance();
@@ -250,14 +251,19 @@ export class AppUpgrade extends LitElement {
     this.message = '';
   }
 
-  private submitUpgradeCode() {
+  private async submitUpgradeCode() {
     if (!this.upgradeCode.trim()) {
       this.message = 'Please enter an upgrade code';
       this.messageType = 'error';
       return;
     }
 
-    const isValid = this.licenseManager.verifyAndApplyCode(this.upgradeCode);
+    this.isVerifying = true;
+    this.message = '';
+
+    const isValid = await this.licenseManager.verifyAndApplyCode(this.upgradeCode);
+
+    this.isVerifying = false;
 
     if (isValid) {
       this.premiumManager.refreshStatus();
@@ -293,7 +299,7 @@ export class AppUpgrade extends LitElement {
 
   private handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
-      this.submitUpgradeCode();
+      void this.submitUpgradeCode();
     }
   }
 
@@ -375,10 +381,10 @@ export class AppUpgrade extends LitElement {
             />
             <button
               class="upgrade-btn"
-              @click=${this.submitUpgradeCode}
-              ?disabled=${!this.upgradeCode.trim()}
+              @click=${() => this.submitUpgradeCode()}
+              ?disabled=${!this.upgradeCode.trim() || this.isVerifying}
             >
-              Unlock
+              ${this.isVerifying ? 'Verifying...' : 'Unlock'}
             </button>
           </div>
         </div>

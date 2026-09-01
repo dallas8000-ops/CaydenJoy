@@ -327,14 +327,17 @@ export class AppAdmin extends LitElement {
           In production, integrate code generation with a backend server.
         </div>
 
+        <div class="warning">
+          ⚠️ <strong>Local generator below is a placeholder.</strong> Codes it produces are random
+          strings for note-keeping only — they will NOT pass server-side checksum verification.
+          Real redeemable codes come from <code>createUpgradeKey()</code> in
+          <code>server/stripe-server.js</code> (currently invoked from the Stripe webhook).
+        </div>
+
         <div class="stats">
           <div class="stat-card">
             <div class="stat-number">${totalCodes}</div>
             <div class="stat-label">Generated Codes</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">8</div>
-            <div class="stat-label">Valid Test Codes</div>
           </div>
         </div>
 
@@ -401,36 +404,13 @@ export class AppAdmin extends LitElement {
         </div>
 
         <div class="section">
-          <div class="section-title">Valid Test Codes</div>
-          <ul class="codes-list">
-            <li class="code-item">
-              <div class="code-info">
-                <div class="code-text">CAYDENJOY-PREMIUM-2024</div>
-                <div class="code-description">Primary test code</div>
-              </div>
-              <button class="btn-copy" @click=${() => this.copyToClipboard('CAYDENJOY-PREMIUM-2024')}>
-                📋 Copy
-              </button>
-            </li>
-            <li class="code-item">
-              <div class="code-info">
-                <div class="code-text">TEST-CODE-001</div>
-                <div class="code-description">Quick test code</div>
-              </div>
-              <button class="btn-copy" @click=${() => this.copyToClipboard('TEST-CODE-001')}>
-                📋 Copy
-              </button>
-            </li>
-            <li class="code-item">
-              <div class="code-info">
-                <div class="code-text">DEMO-FULL-ACCESS</div>
-                <div class="code-description">Demo/evaluation code</div>
-              </div>
-              <button class="btn-copy" @click=${() => this.copyToClipboard('DEMO-FULL-ACCESS')}>
-                📋 Copy
-              </button>
-            </li>
-          </ul>
+          <div class="section-title">Legacy Test Codes</div>
+          <div class="empty-message">
+            Legacy/test codes now live only in server/stripe-server.js (LEGACY_UPGRADE_CODES) and are
+            verified via POST /api/verify-code. They are intentionally not listed here — this panel
+            ships in dev-mode builds only, but hardcoding real redeemable codes into a source file that
+            gets built and distributed is how they leaked into the shipped app the first time.
+          </div>
         </div>
       </div>
     `;

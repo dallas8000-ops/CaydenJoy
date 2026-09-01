@@ -1,0 +1,13 @@
+[Content_Types].xml
+docProps/app.xml
+docProps/core.xml
+word/document.xml
+word/endnotes.xml
+word/fontTable.xml
+word/footnotes.xml
+word/settings.xml
+word/styles.xml
+word/webSettings.xml
+word/theme/theme1.xml
+word/_rels/document.xml.rels
+_rels/.rels

@@ -521,7 +521,6 @@ export class AppCommunication extends LitElement {
       request.text,
       request.phrase
     );
-    this.accessibilityManager.playSound('click');
     this.accessibilityManager.speakNow(request.phrase, 0.9);
   }
 

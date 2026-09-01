@@ -25,7 +25,6 @@ import './pages/app-premium.js';
 import './pages/app-custom-images.js';
 import './pages/app-upgrade.js';
 import './pages/app-download.js';
-import './pages/app-admin.js';
 import './pages/app-progress.js';
 import './pages/app-feedback.js';
 import './pages/app-payment-success.js';
@@ -36,6 +35,23 @@ import './pages/app-license.js';
 import './components/footer.js';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
+
+// The admin panel is a dev/test tool for minting and inspecting upgrade
+// codes. It must never ship in the standard (App Store / Play Store) build:
+// keeping it dev-only, lazy-loaded route means Vite drops both the route
+// registration and the app-admin component out of that bundle entirely.
+const devModeEnabled = (import.meta as any).env.VITE_DEV_MODE === 'true';
+
+const devOnlyRoutes = devModeEnabled
+  ? [
+      {
+        path: resolveRouterPath('admin'),
+        title: 'Admin',
+        plugins: [lazy(() => import('./pages/app-admin.js'))],
+        render: () => html`<app-admin></app-admin>`
+      }
+    ]
+  : [];
 
 export const router = new Router({
     routes: [
@@ -124,11 +140,7 @@ export const router = new Router({
         title: 'Payment Complete',
         render: () => html`<app-payment-success></app-payment-success>`
       },
-      {
-        path: resolveRouterPath('admin'),
-        title: 'Admin',
-        render: () => html`<app-admin></app-admin>`
-      },
+      ...devOnlyRoutes,
       {
         path: resolveRouterPath('progress'),
         title: 'Progress Dashboard',

@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
+import { AccessibilityManager } from '../utils/accessibility-manager.js';
 
 interface PlaceItem {
   id: string;
@@ -45,6 +46,7 @@ export class AppPlaces extends LitElement {
   @state() newTabName = '';
 
   private premiumManager = PremiumManager.getInstance();
+  private accessibilityManager = AccessibilityManager.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_places_tabs';
 
@@ -149,6 +151,11 @@ export class AppPlaces extends LitElement {
     this.saveTabs();
   }
 
+  private selectPlace(place: PlaceItem): void {
+    this.selectedPlace = place;
+    this.accessibilityManager.speakNow(place.phrase, 0.9);
+  }
+
   render() {
     const canAddTabs = this.premiumManager.canAddAdditionalTabs();
     const currentPlaces = this.getActiveTab()?.places ?? this.places;
@@ -158,7 +165,7 @@ export class AppPlaces extends LitElement {
         <p class="subtitle">Real place photos for daily routines and transitions.</p>
         ${this.selectedPlace ? html`<div class="selected-card" style="--place-color: ${this.selectedPlace.color}"><img src=${this.selectedPlace.imageUrl} alt=${this.selectedPlace.name} /><div><div class="selected-name">${this.selectedPlace.name}</div><div class="selected-phrase">${this.selectedPlace.phrase}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
-        <div class="place-grid">${currentPlaces.map((place) => html`<button class="place-button" style="--place-color: ${place.color}" @click=${() => this.selectedPlace = place}><img src=${place.imageUrl} alt=${place.name} /><div class="card-copy"><div class="place-name">${place.name}</div><div class="place-phrase">${place.phrase}</div></div></button>`)}</div>
+        <div class="place-grid">${currentPlaces.map((place) => html`<button class="place-button" style="--place-color: ${place.color}" @click=${() => this.selectPlace(place)}><img src=${place.imageUrl} alt=${place.name} /><div class="card-copy"><div class="place-name">${place.name}</div><div class="place-phrase">${place.phrase}</div></div></button>`)}</div>
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

@@ -5,7 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   base: process.env.VITE_BASE || "./",
   build: {
-    sourcemap: true,
+    // Sourcemaps ship the full, readable original TypeScript (comments
+    // included) as .map files anyone can fetch from the live site — fine for
+    // the tablet/dev build, not something the App Store / Play Store build
+    // should serve alongside the app's actual source and internal notes.
+    sourcemap: process.env.VITE_DEV_MODE === 'true',
     assetsDir: "code",
     target: ["esnext"],
     cssMinify: true,

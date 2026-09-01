@@ -124,7 +124,6 @@ export class AppHomeEnhanced extends LitElement {
   `;
 
   private handleButtonClick(button: QuickButton) {
-    this.accessibilityManager.playSound('click');
     this.accessibilityManager.speakNow(button.label, 1);
   }
 

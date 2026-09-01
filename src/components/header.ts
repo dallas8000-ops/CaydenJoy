@@ -8,6 +8,11 @@ import '@shoelace-style/shoelace/dist/components/menu/menu.js';
 import '@shoelace-style/shoelace/dist/components/menu-item/menu-item.js';
 import '@shoelace-style/shoelace/dist/components/icon-button/icon-button.js';
 
+// Must match the same build-time flag src/router.ts uses to decide whether
+// the /admin route exists at all. Keep the nav link in sync with the route:
+// showing a link to a route that doesn't exist in this build is its own bug.
+const devModeEnabled = (import.meta as any).env.VITE_DEV_MODE === 'true';
+
 @customElement('app-header')
 export class AppHeader extends LitElement {
   @property({ type: String }) title = 'CaydenJoy';
@@ -143,7 +148,7 @@ export class AppHeader extends LitElement {
           <a href="${resolveRouterPath('custom-images')}">📸</a>
           <a href="${resolveRouterPath('upgrade')}">🔓</a>
           <a href="${resolveRouterPath('premium')}">👑</a>
-          <a href="${resolveRouterPath('admin')}">⚙️</a>
+          ${devModeEnabled ? html`<a href="${resolveRouterPath('admin')}">⚙️</a>` : ''}
           <a href="${resolveRouterPath('settings')}">🛠️</a>
         </nav>
       </header>

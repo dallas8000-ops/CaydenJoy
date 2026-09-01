@@ -1,0 +1,7 @@
+<FilesMatch "\.json$">
+  Header set Content-Type "application/json; charset=utf-8"
+</FilesMatch>
+
+<FilesMatch "assetlinks\.json$">
+  Header set Content-Type "application/json"
+</FilesMatch>

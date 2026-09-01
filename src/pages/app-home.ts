@@ -6,11 +6,13 @@ import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
 import '../components/header';
+import { AccessibilityManager } from '../utils/accessibility-manager';
 
 @customElement('app-home')
 export class AppHome extends LitElement {
   @property() message = 'CaydenJoy';
   @property() isOnline = navigator.onLine;
+  private readonly accessibilityManager = AccessibilityManager.getInstance();
 
   static override readonly styles = css`
     :host {
@@ -160,10 +162,7 @@ export class AppHome extends LitElement {
   }
 
   private speak(text: string) {
-    if ('speechSynthesis' in globalThis && typeof SpeechSynthesisUtterance !== 'undefined') {
-      globalThis.speechSynthesis.cancel();
-      globalThis.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-    }
+    this.accessibilityManager.speakNow(text, 0.9);
   }
 
   render() {
