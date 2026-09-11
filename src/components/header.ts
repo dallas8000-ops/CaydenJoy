@@ -24,17 +24,16 @@ export class AppHeader extends LitElement {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
       gap: 12px;
       background: linear-gradient(135deg, #6C5CE7 0%, #5F3DC4 100%);
       color: white;
+      box-sizing: border-box;
+      min-height: 72px;
       padding: 12px 20px;
-      padding-top: 4px;
 
       position: fixed;
       left: env(titlebar-area-x, 0);
       top: env(titlebar-area-y, 0);
-      height: env(titlebar-area-height, auto);
       width: env(titlebar-area-width, 100%);
       -webkit-app-region: drag;
       z-index: 1000;
@@ -51,8 +50,11 @@ export class AppHeader extends LitElement {
       display: flex;
       gap: 12px;
       align-items: center;
-      flex-wrap: wrap;
       justify-content: flex-end;
+      min-width: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
     }
 
     nav a {
@@ -61,6 +63,7 @@ export class AppHeader extends LitElement {
       padding: 6px 12px;
       border-radius: 4px;
       font-size: 14px;
+      flex: 0 0 auto;
       transition: background-color 0.3s;
     }
 
@@ -80,19 +83,16 @@ export class AppHeader extends LitElement {
         color: white;
       }
 
-      nav a {
-        color: initial;
-      }
     }
 
     @media (max-width: 900px) {
       header {
-        align-items: flex-start;
+        min-height: 76px;
+        padding: 10px 14px;
       }
 
       nav {
-        width: 100%;
-        justify-content: flex-start;
+        justify-content: flex-end;
         gap: 8px;
       }
 
@@ -104,7 +104,9 @@ export class AppHeader extends LitElement {
 
     @media (max-width: 640px) {
       header {
-        padding: 10px 14px;
+        min-height: 68px;
+        gap: 8px;
+        padding: 8px 12px;
       }
 
       header h1 {
@@ -121,9 +123,6 @@ export class AppHeader extends LitElement {
         border-radius: 999px;
       }
 
-      #back-button-block {
-        width: 100%;
-      }
     }
   `;
 

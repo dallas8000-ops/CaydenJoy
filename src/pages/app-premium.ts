@@ -60,10 +60,9 @@ export class Premium extends LitElement {
       bestFor: 'Caregivers, therapy teams, and multi-context use.',
       features: [
         'Everything in Learning Plus',
-        'Voice customization access',
-        'All current premium features',
-        'Future premium feature updates',
-        'Priority support',
+        'Choose a preferred device voice',
+        'Set a speaking rate across every board',
+        'All current premium caregiver tools',
       ],
     },
   ];

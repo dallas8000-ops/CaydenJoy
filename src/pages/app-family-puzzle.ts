@@ -4,9 +4,12 @@ import { AccessibilityManager } from '../utils/accessibility-manager.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { PremiumManager } from '../utils/premium-manager.js';
 import { resolveRouterPath } from '../router';
 
 type PuzzleMode = 'family' | 'objects';
+
+const IMAGE_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"%3E%3Crect width="320" height="200" fill="%23dfe8f1"/%3E%3Ccircle cx="160" cy="75" r="38" fill="%2389a0b7"/%3E%3Cpath d="M78 190c10-50 52-75 82-75s72 25 82 75" fill="%2389a0b7"/%3E%3C/svg%3E';
 
 interface PuzzleCard {
   id: string;
@@ -26,13 +29,16 @@ export class AppFamilyPuzzle extends LitElement {
   @state() private completedObjectIds: string[] = [];
   @state() private customFamilyCards: PuzzleCard[] = [];
   @state() private customObjectCards: PuzzleCard[] = [];
+  @state() private routineStep = 0;
 
   private accessibilityManager = AccessibilityManager.getInstance();
   private progressManager = ProgressManager.getInstance();
   private customImagesManager = CustomImagesManager.getInstance();
   private sentenceBuilder = SentenceBuilder.getInstance();
+  private premiumManager = PremiumManager.getInstance();
   private readonly FAMILY_CATEGORY = 'family';
   private readonly OBJECTS_CATEGORY = 'objects';
+  private readonly routineSteps = ['Look at the plan', 'Choose an activity', 'Take a short break', 'All done'];
 
   private readonly familyCards: PuzzleCard[] = [
     {
@@ -265,6 +271,40 @@ export class AppFamilyPuzzle extends LitElement {
       gap: 0.9rem;
     }
 
+    .routine-session {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border: 1px solid #d8e0ea;
+      border-radius: 0.5rem;
+      background: #ffffff;
+    }
+
+    .routine-title {
+      margin: 0 0 0.75rem;
+      font-size: 1.2rem;
+      color: #243041;
+    }
+
+    .routine-steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+
+    .routine-step {
+      min-height: 72px;
+      border: 2px solid #c9d4e1;
+      border-radius: 0.5rem;
+      background: #f8fafc;
+      color: #243041;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .routine-step.current { border-color: #1f7a8c; background: #dceff4; }
+    .routine-step.complete { border-color: #2e8f74; background: #edf7f4; color: #1f463b; }
+    .routine-locked { margin-bottom: 1rem; padding: 1rem; border-radius: 0.5rem; background: #f8fafc; border: 1px solid #d8e0ea; color: #526070; font-weight: 700; }
+
     .puzzle-card {
       display: grid;
       grid-template-rows: 150px auto;
@@ -328,6 +368,10 @@ export class AppFamilyPuzzle extends LitElement {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .routine-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       h1 {
         font-size: 1.55rem;
       }
@@ -369,6 +413,11 @@ export class AppFamilyPuzzle extends LitElement {
 
   private speak(text: string): void {
     this.accessibilityManager.speakNow(text, 0.9);
+  }
+
+  private useImageFallback(event: Event): void {
+    const image = event.currentTarget as HTMLImageElement;
+    if (image.src !== IMAGE_FALLBACK) image.src = IMAGE_FALLBACK;
   }
 
   private setMode(mode: PuzzleMode): void {
@@ -425,8 +474,16 @@ export class AppFamilyPuzzle extends LitElement {
     this.selectedId = null;
     this.completedFamilyIds = [];
     this.completedObjectIds = [];
+    this.routineStep = 0;
     this.speak('Puzzle reset.');
     setTimeout(() => this.speakCurrentPrompt(), 700);
+  }
+
+  private selectRoutineStep(index: number): void {
+    this.routineStep = index;
+    const step = this.routineSteps[index];
+    this.progressManager.log('activity', 'Routine session', step);
+    this.speak(step);
   }
 
   private renderCard(card: PuzzleCard) {
@@ -436,7 +493,7 @@ export class AppFamilyPuzzle extends LitElement {
         class="puzzle-card ${this.selectedId === card.id ? 'selected' : ''} ${completed ? 'done' : ''}"
         @click=${() => this.chooseCard(card)}
       >
-        <img src=${card.imageUrl} alt=${card.label} />
+        <img src=${card.imageUrl} alt=${card.label} @error=${this.useImageFallback} />
         <div class="card-copy">
           <div class="label">${card.label}${card.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div>
           <div class="status">${completed ? 'Found' : 'Tap to choose'}</div>
@@ -446,6 +503,7 @@ export class AppFamilyPuzzle extends LitElement {
   }
 
   render() {
+    const canUseLearningSessions = this.premiumManager.canAddAdditionalTabs();
     const customCategory = this.mode === 'family' ? this.FAMILY_CATEGORY : this.OBJECTS_CATEGORY;
     const addPhotosLabel = this.mode === 'family' ? "Add Cayden's real family photos" : "Add Cayden's real object photos";
     return html`
@@ -467,6 +525,22 @@ export class AppFamilyPuzzle extends LitElement {
           <button class="safety-button done" @click=${() => this.speak('All done.')}>All Done</button>
           <button class="safety-button stop" @click=${() => this.speak('Stop.')}>Stop</button>
         </div>
+
+        ${canUseLearningSessions ? html`
+          <section class="routine-session" aria-label="Visual routine session">
+            <h2 class="routine-title">Visual Routine</h2>
+            <div class="routine-steps">
+              ${this.routineSteps.map((step, index) => html`
+                <button
+                  class="routine-step ${index < this.routineStep ? 'complete' : ''} ${index === this.routineStep ? 'current' : ''}"
+                  @click=${() => this.selectRoutineStep(index)}
+                >${index < this.routineStep ? 'Done: ' : ''}${step}</button>
+              `)}
+            </div>
+          </section>
+        ` : html`
+          <div class="routine-locked">Learning Plus adds visual routine sessions for home, therapy, and school practice.</div>
+        `}
 
         <section class="session-card" aria-label="Picture puzzle">
           <div class="mode-tabs">

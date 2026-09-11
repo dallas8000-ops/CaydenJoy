@@ -21,7 +21,7 @@ export class AppIndex extends LitElement {
       min-height: 100vh;
       --app-shell-padding-x: 16px;
       /* header height + persistent core-word-bar height (sentence strip + word row) */
-      --app-shell-padding-top: 200px;
+      --app-shell-padding-top: 184px;
       --app-shell-padding-bottom: 100px;
     }
 
@@ -78,14 +78,14 @@ export class AppIndex extends LitElement {
 
     @media (max-width: 900px) {
       :host {
-        --app-shell-padding-top: 226px;
+        --app-shell-padding-top: 188px;
       }
     }
 
     @media (max-width: 640px) {
       :host {
         --app-shell-padding-x: 12px;
-        --app-shell-padding-top: 248px;
+        --app-shell-padding-top: 180px;
         --app-shell-padding-bottom: 112px;
       }
 

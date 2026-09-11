@@ -4,7 +4,10 @@ import { PremiumManager } from '../utils/premium-manager.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
 import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
+
+const IMAGE_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"%3E%3Crect width="320" height="200" fill="%23dfe8f1"/%3E%3Ccircle cx="160" cy="75" r="38" fill="%2389a0b7"/%3E%3Cpath d="M78 190c10-50 52-75 82-75s72 25 82 75" fill="%2389a0b7"/%3E%3C/svg%3E';
 
 interface PlaceItem {
   id: string;
@@ -54,6 +57,7 @@ export class AppPlaces extends LitElement {
   private accessibilityManager = AccessibilityManager.getInstance();
   private customImagesManager = CustomImagesManager.getInstance();
   private sentenceBuilder = SentenceBuilder.getInstance();
+  private progressManager = ProgressManager.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_places_tabs';
   private readonly CUSTOM_CATEGORY = 'places';
@@ -170,8 +174,14 @@ export class AppPlaces extends LitElement {
 
   private selectPlace(place: PlaceItem): void {
     this.selectedPlace = place;
+    this.progressManager.log('activity', 'Places', place.name);
     this.accessibilityManager.speakNow(place.phrase, 0.9);
     this.sentenceBuilder.addWord({ label: place.name, imageUrl: place.imageUrl });
+  }
+
+  private useImageFallback(event: Event): void {
+    const image = event.currentTarget as HTMLImageElement;
+    if (image.src !== IMAGE_FALLBACK) image.src = IMAGE_FALLBACK;
   }
 
   render() {
@@ -184,7 +194,7 @@ export class AppPlaces extends LitElement {
         <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real place photos</a>
         ${this.selectedPlace ? html`<div class="selected-card" style="--place-color: ${this.selectedPlace.color}"><img src=${this.selectedPlace.imageUrl} alt=${this.selectedPlace.name} /><div><div class="selected-name">${this.selectedPlace.name}</div><div class="selected-phrase">${this.selectedPlace.phrase}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
-        <div class="place-grid">${currentPlaces.map((place) => html`<button class="place-button" style="--place-color: ${place.color}" @click=${() => this.selectPlace(place)}><img src=${place.imageUrl} alt=${place.name} /><div class="card-copy"><div class="place-name">${place.name}${place.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div><div class="place-phrase">${place.phrase}</div></div></button>`)}</div>
+        <div class="place-grid">${currentPlaces.map((place) => html`<button class="place-button" style="--place-color: ${place.color}" @click=${() => this.selectPlace(place)}><img src=${place.imageUrl} alt=${place.name} @error=${this.useImageFallback} /><div class="card-copy"><div class="place-name">${place.name}${place.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div><div class="place-phrase">${place.phrase}</div></div></button>`)}</div>
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

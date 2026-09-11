@@ -25,7 +25,7 @@ export class CoreWordBar extends LitElement {
       position: fixed;
       left: 0;
       right: 0;
-      top: 88px;
+      top: 72px;
       z-index: 900;
       background: #fff;
       border-bottom: 3px solid #d8e0ea;
@@ -140,11 +140,11 @@ export class CoreWordBar extends LitElement {
     .cat-negation { background: #ffd0d0; border-color: #e06060; }
 
     @media (max-width: 900px) {
-      :host { top: 112px; }
+      :host { top: 76px; }
     }
 
     @media (max-width: 640px) {
-      :host { top: 128px; }
+      :host { top: 68px; }
       .core-word-btn { min-width: 54px; min-height: 50px; font-size: 0.65rem; }
       .core-word-btn img { width: 21px; height: 21px; }
     }

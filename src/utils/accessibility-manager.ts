@@ -15,6 +15,8 @@ export interface AccessibilitySettings {
   enableTextToSpeech: boolean;
   enableReducedMotion: boolean;
   highlightInteractive: boolean;
+  voiceName: string;
+  speechRate: number;
 }
 
 export const DEFAULT_SETTINGS: AccessibilitySettings = {
@@ -25,6 +27,8 @@ export const DEFAULT_SETTINGS: AccessibilitySettings = {
   enableTextToSpeech: true,
   enableReducedMotion: false,
   highlightInteractive: false,
+  voiceName: '',
+  speechRate: 0,
 };
 
 const STORAGE_KEY = 'caydenjoy_accessibility_settings';
@@ -183,6 +187,11 @@ export class AccessibilityManager {
     this.speakNow(text, rate);
   }
 
+  getEnglishVoices(): SpeechSynthesisVoice[] {
+    if (!('speechSynthesis' in window)) return [];
+    return window.speechSynthesis.getVoices().filter((voice) => voice.lang.toLowerCase().startsWith('en'));
+  }
+
   speakNow(text: string, rate: number = 1): void {
     if (window.CaydenJoyVoice) {
       window.CaydenJoyVoice.speak(text, rate);
@@ -200,12 +209,13 @@ export class AccessibilityManager {
 
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
-      const englishVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith('en'));
+      const englishVoice = voices.find((voice) => voice.name === this.settings.voiceName)
+        ?? voices.find((voice) => voice.lang.toLowerCase().startsWith('en'));
       if (englishVoice) {
         utterance.voice = englishVoice;
       }
       utterance.lang = englishVoice?.lang ?? 'en-US';
-      utterance.rate = rate;
+      utterance.rate = this.settings.speechRate || rate;
       utterance.pitch = 1;
       utterance.volume = 1;
 

@@ -4,6 +4,7 @@ import { PremiumManager } from '../utils/premium-manager.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
 import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
 
 interface NumberItem {
@@ -65,6 +66,7 @@ export class AppNumbers extends LitElement {
   private accessibilityManager = AccessibilityManager.getInstance();
   private customImagesManager = CustomImagesManager.getInstance();
   private sentenceBuilder = SentenceBuilder.getInstance();
+  private progressManager = ProgressManager.getInstance();
   private readonly DEFAULT_TAB_ID = 'default';
   private readonly TABS_STORAGE_KEY = 'caydenjoy_numbers_tabs';
   private readonly CUSTOM_CATEGORY = 'numbers';
@@ -130,9 +132,13 @@ export class AppNumbers extends LitElement {
         const data: NumbersTabsData = JSON.parse(stored);
         this.tabs = data.tabs.map((tab) => ({
           ...tab,
-          numbers: tab.numbers.map((item, index) => this.normalizeNumber(item, this.numbers[index] ?? this.numbers[0])),
+          numbers: this.numbers.map((fallback) => {
+            const savedItem = tab.numbers.find((item) => Number(item?.number) === fallback.number);
+            return this.normalizeNumber(savedItem, fallback);
+          }),
         }));
         this.activeTabId = data.activeTabId;
+        this.saveTabs();
       } else {
         this.initializeDefaultTab();
       }
@@ -178,6 +184,7 @@ export class AppNumbers extends LitElement {
 
   private selectNumber(item: NumberItem): void {
     this.selectedNumber = item;
+    this.progressManager.log('activity', 'Numbers', item.isCustom ? item.label : String(item.number));
     this.accessibilityManager.speakNow(item.isCustom ? item.label : `${item.number}. ${item.label}.`, 0.9);
     this.sentenceBuilder.addWord({ label: item.isCustom ? item.label : String(item.number), imageUrl: item.imageUrl });
   }

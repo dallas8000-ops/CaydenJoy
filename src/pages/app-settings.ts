@@ -6,6 +6,8 @@ import '@shoelace-style/shoelace/dist/components/select/select.js';
 import '@shoelace-style/shoelace/dist/components/option/option.js';
 import '@shoelace-style/shoelace/dist/components/switch/switch.js';
 import { AccessibilityManager, AccessibilitySettings, ColorTheme, FontSize } from '../utils/accessibility-manager.js';
+import { PremiumManager } from '../utils/premium-manager.js';
+import { resolveRouterPath } from '../router.js';
 import { styles } from '../styles/shared-styles.js';
 import '../components/header.js';
 import '../components/footer.js';
@@ -15,6 +17,7 @@ export class AppSettings extends LitElement {
   @state() settings: AccessibilitySettings = AccessibilityManager.getInstance().getSettings();
 
   private accessibilityManager = AccessibilityManager.getInstance();
+  private premiumManager = PremiumManager.getInstance();
   private unsubscribe?: () => void;
 
   static styles = [
@@ -231,6 +234,14 @@ export class AppSettings extends LitElement {
     }
   }
 
+  private onVoiceChange(e: Event): void {
+    this.accessibilityManager.saveSettings({ voiceName: (e.target as HTMLSelectElement).value });
+  }
+
+  private onSpeechRateChange(e: Event): void {
+    this.accessibilityManager.saveSettings({ speechRate: Number((e.target as HTMLSelectElement).value) });
+  }
+
   private onReducedMotionChange(e: Event): void {
     const enabled = (e.target as HTMLInputElement).checked;
     this.accessibilityManager.saveSettings({ enableReducedMotion: enabled });
@@ -256,6 +267,8 @@ export class AppSettings extends LitElement {
   }
 
   render() {
+    const canCustomizeVoice = this.premiumManager.canCustomizeVoice();
+    const voices = this.accessibilityManager.getEnglishVoices();
     return html`
       <app-header></app-header>
 
@@ -379,6 +392,28 @@ export class AppSettings extends LitElement {
               <sl-button @click="${this.testSpeech}" size="medium">
                 Test Speech
               </sl-button>
+              ${canCustomizeVoice ? html`
+                <div class="setting-item" style="margin-top: 1rem;">
+                  <label class="setting-label">Voice:</label>
+                  <sl-select value=${this.settings.voiceName} @sl-change=${this.onVoiceChange}>
+                    <sl-option value="">Device default</sl-option>
+                    ${voices.map((voice) => html`<sl-option value=${voice.name}>${voice.name}</sl-option>`)}
+                  </sl-select>
+                </div>
+                <div class="setting-item">
+                  <label class="setting-label">Speaking rate:</label>
+                  <sl-select value=${String(this.settings.speechRate)} @sl-change=${this.onSpeechRateChange}>
+                    <sl-option value="0">Use each board's pace</sl-option>
+                    <sl-option value="0.7">Slower</sl-option>
+                    <sl-option value="0.9">Calm</sl-option>
+                    <sl-option value="1">Normal</sl-option>
+                    <sl-option value="1.15">Faster</sl-option>
+                  </sl-select>
+                </div>
+              ` : html`
+                <p class="setting-description">All Access unlocks a preferred voice and speaking rate for every board.</p>
+                <sl-button href=${resolveRouterPath('premium')} size="medium">View All Access</sl-button>
+              `}
             </div>
           </sl-card>
 

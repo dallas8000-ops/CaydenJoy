@@ -337,7 +337,7 @@ export class CustomImages extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.checkPremium();
+    this.isPremium = this.premiumManager.canUseCustomImages();
     this.loadImages();
     this.applyCategoryFromUrl();
   }
@@ -353,10 +353,6 @@ export class CustomImages extends LitElement {
     } catch (e) {
       // Query param pre-selection is a convenience only; ignore failures.
     }
-  }
-
-  private checkPremium(): void {
-    this.isPremium = this.premiumManager.canUseCustomImages();
   }
 
   private loadImages(): void {
@@ -495,31 +491,26 @@ export class CustomImages extends LitElement {
     }
   }
 
-  private goToPremium(): void {
-    window.location.href = resolveRouterPath('premium');
-  }
-
   render() {
+    const canUseBackups = this.premiumManager.canUseCloudBackup();
     const categoryImages = this.imagesManager.getImagesByCategory(this.selectedCategory);
+
+    if (!this.isPremium) {
+      return html`
+        <div class="container">
+          <h1>🖼️ Custom Images</h1>
+          <div class="locked-message">
+            <p>Family Photos unlocks personal image boards for communication, foods, colors, places, and activities.</p>
+            <a href=${resolveRouterPath('premium')}>View Family Photos</a>
+          </div>
+        </div>
+      `;
+    }
 
     return html`
       <div class="container">
-        <h1>
-          🖼️ Custom Images
-          ${this.isPremium ? html`<span class="premium-badge">Premium</span>` : ''}
-        </h1>
+        <h1>🖼️ Custom Images</h1>
 
-        ${!this.isPremium
-          ? html`
-              <div class="locked-message">
-                <p>🔒 Custom image uploads are a premium feature</p>
-                <p>Included starting with the <strong>Family Photos</strong> tier</p>
-                <button class="btn btn-primary" @click="${this.goToPremium}">
-                  Upgrade to Premium
-                </button>
-              </div>
-            `
-          : html`
               <div class="upload-section">
                 <h2>📸 Upload New Image</h2>
 
@@ -639,19 +630,21 @@ export class CustomImages extends LitElement {
               </div>
 
               <div class="button-group">
-                <button class="btn btn-secondary" @click="${this.exportImages}">
-                  Export Backup
-                </button>
-                <button class="btn btn-secondary" @click="${this.chooseImportFile}">
-                  Import Backup
-                </button>
-                <input
-                  id="custom-images-import"
-                  type="file"
-                  accept="application/json,.json"
-                  class="file-input-hidden"
-                  @change="${this.importImages}"
-                />
+                ${canUseBackups ? html`
+                  <button class="btn btn-secondary" @click="${this.exportImages}">
+                    Export Backup
+                  </button>
+                  <button class="btn btn-secondary" @click="${this.chooseImportFile}">
+                    Import Backup
+                  </button>
+                  <input
+                    id="custom-images-import"
+                    type="file"
+                    accept="application/json,.json"
+                    class="file-input-hidden"
+                    @change="${this.importImages}"
+                  />
+                ` : html`<a class="btn btn-secondary" href=${resolveRouterPath('premium')}>Unlock Backups</a>`}
                 <button class="btn btn-secondary" @click="${this.deleteCategory}">
                   🗑️ Delete All in ${this.selectedCategory}
                 </button>
@@ -659,7 +652,6 @@ export class CustomImages extends LitElement {
                   ⚠️ Clear All Images
                 </button>
               </div>
-            `}
       </div>
     `;
   }
