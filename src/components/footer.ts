@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { resolveRouterPath } from '../router';
+import { IS_PLAY_BUILD } from '../utils/store-config';
 
 @customElement('app-footer')
 export class AppFooter extends LitElement {
@@ -167,10 +168,10 @@ export class AppFooter extends LitElement {
             <div class="footer-section">
               <h3>Resources</h3>
               <ul>
-                <li><a href="${resolveRouterPath('download')}">Download Android APK</a></li>
+                ${IS_PLAY_BUILD ? '' : html`<li><a href="${resolveRouterPath('download')}">Download Android APK</a></li>`}
                 <li><a href="${resolveRouterPath('custom-images')}">Custom Photos</a></li>
                 <li><a href="${resolveRouterPath('progress')}">Progress Dashboard</a></li>
-                <li><a href="${resolveRouterPath('upgrade')}">APK Upgrade Keys</a></li>
+                ${IS_PLAY_BUILD ? '' : html`<li><a href="${resolveRouterPath('upgrade')}">APK Upgrade Keys</a></li>`}
               </ul>
             </div>
           </div>

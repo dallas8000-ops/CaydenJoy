@@ -6,3 +6,9 @@ build
 types
 .idea
 
+
+# Signing keys and env files - never commit
+*.keystore
+*.jks
+.env*
+!.env.example

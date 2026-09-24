@@ -8,6 +8,7 @@ import './components/core-word-bar';
 import './styles/global.css';
 import { router } from './router';
 import { AccessibilityManager } from './utils/accessibility-manager';
+import { PremiumManager } from './utils/premium-manager';
 
 @customElement('app-index')
 export class AppIndex extends LitElement {
@@ -109,6 +110,15 @@ export class AppIndex extends LitElement {
 
   firstUpdated() {
     this.clearTabletBuildCache();
+
+    // Play build: Google Play purchases are the source of truth for paid tiers.
+    // Re-sync on every launch (grants new purchases, revokes refunds) and when
+    // the app returns to the foreground. No-op on web/direct builds.
+    const premium = PremiumManager.getInstance();
+    void premium.syncWithPlay();
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void premium.syncWithPlay();
+    });
 
     // Initialize accessibility manager
     router.addEventListener('route-changed', () => {

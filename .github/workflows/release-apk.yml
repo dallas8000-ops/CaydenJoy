@@ -28,14 +28,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: npm
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - name: Install dependencies
         run: npm ci
@@ -54,11 +54,12 @@ jobs:
             echo "Missing ANDROID_KEYSTORE_BASE64 secret. Add release signing secrets before building customer APKs."
             exit 1
           fi
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/caydenjoy.keystore
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/caydenjoy-release.jks"
 
       - name: Build release APK
         working-directory: android
         env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/caydenjoy-release.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}

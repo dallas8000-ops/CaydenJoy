@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { resolveRouterPath } from '../router';
+import { IS_PLAY_BUILD } from '../utils/store-config';
 
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/card/card.js';
@@ -79,7 +80,7 @@ export class AppLicense extends LitElement {
           </p>
         </sl-card>
 
-        <sl-card>
+        ${IS_PLAY_BUILD ? '' : html`<sl-card>
           <h2>Upgrade keys</h2>
           <ul>
             <li>Family Photos keys start with CJF.</li>
@@ -93,7 +94,7 @@ export class AppLicense extends LitElement {
           </p>
         </sl-card>
 
-        <sl-button href="${resolveRouterPath('upgrade')}" variant="primary">Redeem Upgrade Key</sl-button>
+        <sl-button href="${resolveRouterPath('upgrade')}" variant="primary">Redeem Upgrade Key</sl-button>`}
       </main>
     `;
   }

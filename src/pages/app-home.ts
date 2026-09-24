@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { property, customElement } from 'lit/decorators.js';
 import { resolveRouterPath } from '../router';
+import { IS_PLAY_BUILD } from '../utils/store-config';
 
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
@@ -213,7 +214,7 @@ export class AppHome extends LitElement {
             </div>
           </a>
 
-          <a class="feature" href=${resolveRouterPath('download')}>
+          ${IS_PLAY_BUILD ? '' : html`<a class="feature" href=${resolveRouterPath('download')}>
             <img
               src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=500&q=80"
               alt="Android app download"
@@ -222,7 +223,7 @@ export class AppHome extends LitElement {
               <div class="feature-title">Download Android App</div>
               <div class="feature-text">Open the buyer download page for the CaydenJoy APK and install instructions.</div>
             </div>
-          </a>
+          </a>`}
 
           <a class="feature" href=${resolveRouterPath('custom-images')}>
             <img

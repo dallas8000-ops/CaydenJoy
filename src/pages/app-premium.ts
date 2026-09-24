@@ -1,6 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { PremiumManager, PremiumTier } from '../utils/premium-manager';
+import { PremiumManager, PremiumTier, PREMIUM_CHANGED_EVENT } from '../utils/premium-manager';
+import { IS_PLAY_BUILD, IS_DEV_MODE } from '../utils/store-config';
+import { fetchPlayPrices, purchaseTier, type PaidTier } from '../utils/play-billing';
 import { resolveRouterPath } from '../router';
 
 interface TierOption {
@@ -21,6 +23,8 @@ export class Premium extends LitElement {
   @state() private purchaseMessage = '';
   @state() private checkoutError = '';
   @state() private isCheckingOut = false;
+  @state() private playPrices: Partial<Record<PaidTier, string>> = {};
+  @state() private isRestoring = false;
 
   private premiumManager = PremiumManager.getInstance();
   private readonly stripeApiBase = String((import.meta as any).env.VITE_STRIPE_API_BASE || '').replace(/\/$/, '');
@@ -43,13 +47,12 @@ export class Premium extends LitElement {
       id: 'learning',
       name: 'Learning Plus',
       price: '$99.99',
-      summary: 'Adds organization and backup tools.',
-      bestFor: 'Home practice, therapy sessions, and school routines.',
+      summary: 'Adds a voice that fits your child.',
+      bestFor: 'Daily communication at home and school.',
       features: [
         'Everything in Family Photos',
-        'Additional custom tabs',
-        'Export and import custom image backups',
-        'Better setup for activity sessions',
+        'Choose a preferred device voice',
+        'Set a speaking rate across every board',
       ],
     },
     {
@@ -60,9 +63,9 @@ export class Premium extends LitElement {
       bestFor: 'Caregivers, therapy teams, and multi-context use.',
       features: [
         'Everything in Learning Plus',
-        'Choose a preferred device voice',
-        'Set a speaking rate across every board',
-        'All current premium caregiver tools',
+        'Additional named tabs on every board (Home, Grandma\'s House)',
+        'Export and import custom image backups',
+        'Puzzle learning sessions for home, therapy, and school',
       ],
     },
   ];
@@ -316,9 +319,73 @@ export class Premium extends LitElement {
     }
   `;
 
+  private readonly onPremiumChanged = () => this.refreshPremiumState();
+
   connectedCallback(): void {
     super.connectedCallback();
     this.refreshPremiumState();
+    window.addEventListener(PREMIUM_CHANGED_EVENT, this.onPremiumChanged);
+    if (IS_PLAY_BUILD) {
+      void this.loadPlayPrices();
+    }
+  }
+
+  disconnectedCallback(): void {
+    window.removeEventListener(PREMIUM_CHANGED_EVENT, this.onPremiumChanged);
+    super.disconnectedCallback();
+  }
+
+  /** Localized prices straight from Google Play (e.g. UGX for Ugandan users). */
+  private async loadPlayPrices(): Promise<void> {
+    try {
+      const prices = await fetchPlayPrices();
+      this.playPrices = Object.fromEntries(prices.map((p) => [p.tier, p.priceString]));
+    } catch (e) {
+      console.warn('[BILLING] Could not load Play prices', e);
+    }
+  }
+
+  private displayPrice(tier: TierOption): string {
+    return (tier.id !== 'none' && this.playPrices[tier.id as PaidTier]) || tier.price;
+  }
+
+  private async startPlayPurchase(): Promise<void> {
+    if (this.selectedTier === 'none') return;
+    const rank: Record<PremiumTier, number> = { none: 0, family: 1, learning: 2, allAccess: 3 };
+    if (rank[this.selectedTier] <= rank[this.activeTier]) {
+      // Tiers are separate Play products; never charge for one already included.
+      this.checkoutError = 'Your current tier already includes this. Choose a higher tier to upgrade.';
+      return;
+    }
+    this.checkoutError = '';
+    this.isCheckingOut = true;
+    const result = await purchaseTier(this.selectedTier as PaidTier);
+    this.isCheckingOut = false;
+
+    if (result.status === 'purchased') {
+      this.premiumManager.applyStoreTier(result.tier);
+      this.refreshPremiumState();
+      this.showPurchaseConfirm = false;
+      this.purchaseMessage = `${this.selectedTierOption.name} is active. Thank you!`;
+    } else if (result.status === 'pending') {
+      this.showPurchaseConfirm = false;
+      this.purchaseMessage = 'Your payment is processing. Premium unlocks automatically once Google Play confirms it.';
+    } else if (result.status === 'cancelled') {
+      this.showPurchaseConfirm = false;
+    } else {
+      this.checkoutError = result.message;
+    }
+  }
+
+  private async restorePurchases(): Promise<void> {
+    this.isRestoring = true;
+    this.checkoutError = '';
+    const tier = await this.premiumManager.syncWithPlay();
+    this.isRestoring = false;
+    this.refreshPremiumState();
+    this.purchaseMessage = tier === 'none'
+      ? 'No purchases found for this Google account.'
+      : `${this.tiers.find((t) => t.id === tier)?.name ?? 'Premium'} restored.`;
   }
 
   private refreshPremiumState(): void {
@@ -347,7 +414,12 @@ export class Premium extends LitElement {
   }
 
   private async startStripeCheckout(): Promise<void> {
+    if (IS_PLAY_BUILD) return;
     if (!this.stripeApiBase) {
+      if (!IS_DEV_MODE) {
+        this.checkoutError = 'Checkout is not available in this build yet. Please contact support.';
+        return;
+      }
       this.premiumManager.simulatePremiumPurchase(this.selectedTier);
       this.refreshPremiumState();
       this.showPurchaseConfirm = false;
@@ -380,6 +452,10 @@ export class Premium extends LitElement {
   }
 
   private confirmPurchase(): void {
+    if (IS_PLAY_BUILD) {
+      void this.startPlayPurchase();
+      return;
+    }
     void this.startStripeCheckout();
   }
 
@@ -415,7 +491,7 @@ export class Premium extends LitElement {
             <article class="tier-card ${this.selectedTier === tier.id ? 'selected' : ''}">
               <div class="tier-name">${tier.name}</div>
               <div>
-                <div class="tier-price">${tier.price}</div>
+                <div class="tier-price">${this.displayPrice(tier)}</div>
                 <div class="one-time">one-time purchase</div>
               </div>
               <div class="tier-summary">${tier.summary}</div>
@@ -437,12 +513,18 @@ export class Premium extends LitElement {
           <button class="confirm-button" @click=${this.openPurchaseConfirm}>
             Unlock ${selected.name}
           </button>
-          <a class="secondary-button" href=${resolveRouterPath('upgrade')}>Use Upgrade Code</a>
+          ${IS_PLAY_BUILD ? html`
+            <button class="secondary-button" @click=${this.restorePurchases} ?disabled=${this.isRestoring}>
+              ${this.isRestoring ? 'Checking Google Play...' : 'Restore Purchases'}
+            </button>
+          ` : html`<a class="secondary-button" href=${resolveRouterPath('upgrade')}>Use Upgrade Code</a>`}
           <a class="secondary-button" href=${resolveRouterPath('settings')}>Later</a>
           <div class="note">
-            ${this.stripeApiBase
-              ? 'Secure checkout is handled by Stripe. After payment, CaydenJoy shows the APK download and upgrade key.'
-              : 'Stripe checkout is not configured for this build. The confirm screen can simulate the selected tier for local testing.'}
+            ${IS_PLAY_BUILD
+              ? 'Payment is handled securely by Google Play. Purchases stay with your Google account and can be restored on a new device.'
+              : this.stripeApiBase
+                ? 'Secure checkout is handled by Stripe. After payment, CaydenJoy shows the APK download and upgrade key.'
+                : 'Checkout is not configured for this build.'}
           </div>
           ${this.checkoutError ? html`<div class="error">${this.checkoutError}</div>` : ''}
         </section>
@@ -462,19 +544,23 @@ export class Premium extends LitElement {
         <div class="modal-overlay" @click=${this.cancelPurchase}>
           <div class="modal" @click=${(event: Event) => event.stopPropagation()}>
             <h2>Confirm Tier</h2>
-            <p><strong>${selected.name}</strong> will be purchased for ${selected.price}.</p>
+            <p><strong>${selected.name}</strong> will be purchased for ${this.displayPrice(selected)}.</p>
             <p class="note">
-              ${this.stripeApiBase
-                ? 'You will be sent to Stripe Checkout. After payment, your upgrade key and APK download link will be shown.'
-                : 'Stripe is not configured in this build. Use simulation only for local testing.'}
+              ${IS_PLAY_BUILD
+                ? 'Google Play will ask you to confirm the payment.'
+                : this.stripeApiBase
+                  ? 'You will be sent to Stripe Checkout. After payment, your upgrade key and APK download link will be shown.'
+                  : 'Checkout is not configured in this build.'}
             </p>
             <div class="modal-buttons">
               <button class="confirm-button" @click=${this.confirmPurchase} ?disabled=${this.isCheckingOut}>
-                ${this.isCheckingOut ? 'Opening Stripe...' : this.stripeApiBase ? 'Continue to Stripe' : 'Simulate Unlock'}
+                ${IS_PLAY_BUILD
+                  ? (this.isCheckingOut ? 'Opening Google Play...' : 'Buy with Google Play')
+                  : this.isCheckingOut ? 'Opening Stripe...' : this.stripeApiBase ? 'Continue to Stripe' : IS_DEV_MODE ? 'Simulate Unlock' : 'Unavailable'}
               </button>
               <button class="secondary-button" @click=${this.cancelPurchase}>Cancel</button>
             </div>
-            ${!this.stripeApiBase ? html`
+            ${IS_DEV_MODE && !IS_PLAY_BUILD && !this.stripeApiBase ? html`
               <p class="note">
                 Local test shortcut:
                 <button class="secondary-button" @click=${this.simulatePurchaseForTesting}>Unlock Without Stripe</button>

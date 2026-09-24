@@ -1,5 +1,18 @@
 apply plugin: 'com.android.application'
 
+// Release signing. Credentials live OUTSIDE the repo:
+//   1) file at $CAYDENJOY_SIGNING_PROPS, else C:/Users/Ray/keys/caydenjoy-upload.properties
+//      (storeFile, storePassword, keyAlias, keyPassword), or
+//   2) env vars ANDROID_KEYSTORE_PATH / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD (CI).
+// There is deliberately NO default password: a release build without
+// credentials must fail rather than sign with a guessable key.
+def signingProps = new Properties()
+def signingPropsFile = file(System.getenv('CAYDENJOY_SIGNING_PROPS') ?: 'C:/Users/Ray/keys/caydenjoy-upload.properties')
+if (signingPropsFile.exists()) {
+    signingPropsFile.withInputStream { signingProps.load(it) }
+}
+def signingValue = { String prop, String envName -> signingProps.getProperty(prop) ?: System.getenv(envName) }
+
 android {
     namespace = "io.github.dallas8000_ops.caydenjoy"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -12,11 +25,13 @@ android {
 
     signingConfigs {
         release {
-            // NOTE: Update these with your actual keystore information
-            storeFile file("caydenjoy.keystore")
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: "android"
-            keyAlias System.getenv("KEY_ALIAS") ?: "caydenjoy"
-            keyPassword System.getenv("KEY_PASSWORD") ?: "android"
+            def storePath = signingValue('storeFile', 'ANDROID_KEYSTORE_PATH')
+            if (storePath) {
+                storeFile file(storePath)
+                storePassword signingValue('storePassword', 'KEYSTORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'KEY_PASSWORD')
+            }
         }
     }
 
@@ -24,8 +39,8 @@ android {
         applicationId "io.github.dallas8000_ops.caydenjoy"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.3-tablet"
+        versionCode 5
+        versionName "1.3.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

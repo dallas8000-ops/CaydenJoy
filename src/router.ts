@@ -23,16 +23,14 @@ import './pages/app-numbers.js';
 import './pages/app-places.js';
 import './pages/app-premium.js';
 import './pages/app-custom-images.js';
-import './pages/app-upgrade.js';
-import './pages/app-download.js';
 import './pages/app-progress.js';
 import './pages/app-feedback.js';
-import './pages/app-payment-success.js';
 import './pages/app-documentation.js';
 import './pages/app-privacy.js';
 import './pages/app-terms.js';
 import './pages/app-license.js';
 import './components/footer.js';
+import { IS_PLAY_BUILD } from './utils/store-config';
 
 const baseURL: string = (import.meta as any).env.BASE_URL;
 
@@ -41,6 +39,33 @@ const baseURL: string = (import.meta as any).env.BASE_URL;
 // keeping it dev-only, lazy-loaded route means Vite drops both the route
 // registration and the app-admin component out of that bundle entirely.
 const devModeEnabled = (import.meta as any).env.VITE_DEV_MODE === 'true';
+
+// Direct-sale pages (upgrade keys, Stripe payment result, APK download).
+// Google Play's Payments policy forbids these in the Play build, so they are
+// lazy-loaded and only registered outside it; Rollup drops them from the
+// Play bundle entirely.
+const directSaleRoutes = IS_PLAY_BUILD
+  ? []
+  : [
+      {
+        path: resolveRouterPath('upgrade'),
+        title: 'Upgrade',
+        plugins: [lazy(() => import('./pages/app-upgrade.js'))],
+        render: () => html`<app-upgrade></app-upgrade>`
+      },
+      {
+        path: resolveRouterPath('download'),
+        title: 'Download APK',
+        plugins: [lazy(() => import('./pages/app-download.js'))],
+        render: () => html`<app-download></app-download>`
+      },
+      {
+        path: resolveRouterPath('payment-success'),
+        title: 'Payment Complete',
+        plugins: [lazy(() => import('./pages/app-payment-success.js'))],
+        render: () => html`<app-payment-success></app-payment-success>`
+      }
+    ];
 
 const devOnlyRoutes = devModeEnabled
   ? [
@@ -125,21 +150,7 @@ export const router = new Router({
         title: 'Custom Images',
         render: () => html`<app-custom-images></app-custom-images>`
       },
-      {
-        path: resolveRouterPath('upgrade'),
-        title: 'Upgrade',
-        render: () => html`<app-upgrade></app-upgrade>`
-      },
-      {
-        path: resolveRouterPath('download'),
-        title: 'Download APK',
-        render: () => html`<app-download></app-download>`
-      },
-      {
-        path: resolveRouterPath('payment-success'),
-        title: 'Payment Complete',
-        render: () => html`<app-payment-success></app-payment-success>`
-      },
+      ...directSaleRoutes,
       ...devOnlyRoutes,
       {
         path: resolveRouterPath('progress'),

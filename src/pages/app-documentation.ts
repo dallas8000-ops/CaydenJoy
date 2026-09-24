@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { resolveRouterPath } from '../router';
+import { IS_PLAY_BUILD } from '../utils/store-config';
 
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/card/card.js';
@@ -107,7 +108,7 @@ export class AppDocumentation extends LitElement {
             <sl-button href="${resolveRouterPath('family-puzzle')}" variant="primary">Start Activities</sl-button>
           </sl-card>
 
-          <sl-card>
+          ${IS_PLAY_BUILD ? '' : html`<sl-card>
             <h2>APK Upgrades</h2>
             <p>
               Families can unlock paid tiers with a one-time upgrade key after
@@ -123,7 +124,7 @@ export class AppDocumentation extends LitElement {
               then return to redeem their upgrade key.
             </p>
             <sl-button href="${resolveRouterPath('download')}" variant="primary">Open Download Page</sl-button>
-          </sl-card>
+          </sl-card>`}
         </div>
 
         <div class="actions">

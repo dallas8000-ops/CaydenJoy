@@ -1,6 +1,7 @@
 import { LitElement, css, html } from 'lit';
 import { property, customElement } from 'lit/decorators.js';
 import { resolveRouterPath } from '../router';
+import { IS_PLAY_BUILD } from '../utils/store-config';
 
 import '@shoelace-style/shoelace/dist/components/button/button.js';
 import '@shoelace-style/shoelace/dist/components/dropdown/dropdown.js';
@@ -145,7 +146,7 @@ export class AppHeader extends LitElement {
           <a href="${resolveRouterPath('family-puzzle')}">Puzzle</a>
           <a href="${resolveRouterPath('home-enhanced')}">Quick</a>
           <a href="${resolveRouterPath('custom-images')}">📸</a>
-          <a href="${resolveRouterPath('upgrade')}">🔓</a>
+          ${IS_PLAY_BUILD ? '' : html`<a href="${resolveRouterPath('upgrade')}">🔓</a>`}
           <a href="${resolveRouterPath('premium')}">👑</a>
           ${devModeEnabled ? html`<a href="${resolveRouterPath('admin')}">⚙️</a>` : ''}
           <a href="${resolveRouterPath('settings')}">🛠️</a>

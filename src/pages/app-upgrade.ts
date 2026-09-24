@@ -336,8 +336,8 @@ export class AppUpgrade extends LitElement {
           <div class="upgrade-title">What you'll get:</div>
           <ul class="features-list">
             <li>Family Photos key - Custom image uploads</li>
-            <li>Learning Plus key - Custom images, backup tools, and extra tabs</li>
-            <li>All Access key - All current premium features</li>
+            <li>Learning Plus key - Custom images, preferred voice, and speaking rate</li>
+            <li>All Access key - Everything, plus extra tabs, backups, and puzzle learning sessions</li>
             <li>Keys redeem once on this installed device</li>
           </ul>
         </div>

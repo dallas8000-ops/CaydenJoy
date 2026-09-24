@@ -539,7 +539,7 @@ export class AppFamilyPuzzle extends LitElement {
             </div>
           </section>
         ` : html`
-          <div class="routine-locked">Learning Plus adds visual routine sessions for home, therapy, and school practice.</div>
+          <div class="routine-locked">All Access adds visual routine sessions for home, therapy, and school practice.</div>
         `}
 
         <section class="session-card" aria-label="Picture puzzle">

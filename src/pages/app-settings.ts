@@ -411,8 +411,8 @@ export class AppSettings extends LitElement {
                   </sl-select>
                 </div>
               ` : html`
-                <p class="setting-description">All Access unlocks a preferred voice and speaking rate for every board.</p>
-                <sl-button href=${resolveRouterPath('premium')} size="medium">View All Access</sl-button>
+                <p class="setting-description">Learning Plus unlocks a preferred voice and speaking rate for every board.</p>
+                <sl-button href=${resolveRouterPath('premium')} size="medium">View Learning Plus</sl-button>
               `}
             </div>
           </sl-card>
