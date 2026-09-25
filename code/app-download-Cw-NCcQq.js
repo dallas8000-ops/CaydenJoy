@@ -1,4 +1,4 @@
-import{a as p,c as r,x as e,i as h,t as c}from"./app-home-BTZrMU5k.js";var u=Object.getOwnPropertyDescriptor,m=(i,l,d,n)=>{for(var t=n>1?void 0:n?u(l,d):l,o=i.length-1,s;o>=0;o--)(s=i[o])&&(t=s(t)||t);return t};let a=class extends p{constructor(){super(...arguments),this.apkDownloadUrl="https://gilliomfrontlinedigital.com/downloads/caydenjoy.apk".trim()}render(){return e`
+import{a as p,c as r,x as e,i as h,t as c}from"./app-home-BBp0ydmG.js";var u=Object.getOwnPropertyDescriptor,m=(i,l,d,n)=>{for(var t=n>1?void 0:n?u(l,d):l,o=i.length-1,s;o>=0;o--)(s=i[o])&&(t=s(t)||t);return t};let a=class extends p{constructor(){super(...arguments),this.apkDownloadUrl="https://gilliomfrontlinedigital.com/downloads/caydenjoy.apk".trim()}render(){return e`
       <div class="container">
         <section class="hero">
           <h1>Download the Android APK</h1>

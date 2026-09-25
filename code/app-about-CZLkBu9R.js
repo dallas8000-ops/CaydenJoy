@@ -1,4 +1,4 @@
-import{i as l,a as c,x as d,d as p,t as g}from"./app-home-BTZrMU5k.js";const m=l`
+import{i as l,a as c,x as d,d as p,t as g}from"./app-home-BBp0ydmG.js";const m=l`
   main {
     background: #f4f7fb;
     min-height: 100vh;
