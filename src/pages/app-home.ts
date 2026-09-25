@@ -8,6 +8,7 @@ import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
 import '../components/header';
 import { AccessibilityManager } from '../utils/accessibility-manager';
+import { photo } from '../utils/photos';
 
 @customElement('app-home')
 export class AppHome extends LitElement {
@@ -194,7 +195,7 @@ export class AppHome extends LitElement {
         <section class="feature-grid" aria-label="Main app areas">
           <a class="feature" href=${resolveRouterPath('family-puzzle')}>
             <img
-              src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=500&q=80"
+              src=${photo('photo-1503676260728-1c00da094a0b')}
               alt="Child activity table"
             />
             <div class="feature-copy">
@@ -205,7 +206,7 @@ export class AppHome extends LitElement {
 
           <a class="feature" href=${resolveRouterPath()}>
             <img
-              src="https://images.unsplash.com/photo-1544027993-37dbfe43562a?auto=format&fit=crop&w=500&q=80"
+              src=${photo('photo-1544027993-37dbfe43562a')}
               alt="Communication cards"
             />
             <div class="feature-copy">
@@ -216,7 +217,7 @@ export class AppHome extends LitElement {
 
           ${IS_PLAY_BUILD ? '' : html`<a class="feature" href=${resolveRouterPath('download')}>
             <img
-              src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=500&q=80"
+              src=${photo('photo-1521791136064-7986c2920216')}
               alt="Android app download"
             />
             <div class="feature-copy">
@@ -227,7 +228,7 @@ export class AppHome extends LitElement {
 
           <a class="feature" href=${resolveRouterPath('custom-images')}>
             <img
-              src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=500&q=80"
+              src=${photo('photo-1516035069371-29a1b244cc32')}
               alt="Camera for custom photos"
             />
             <div class="feature-copy">
@@ -238,7 +239,7 @@ export class AppHome extends LitElement {
 
           <a class="feature" href=${resolveRouterPath('settings')}>
             <img
-              src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=500&q=80"
+              src=${photo('photo-1581092160607-ee22621dd758')}
               alt="Calm settings workspace"
             />
             <div class="feature-copy">
@@ -249,7 +250,7 @@ export class AppHome extends LitElement {
 
           <a class="feature" href=${resolveRouterPath('progress')}>
             <img
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=500&q=80"
+              src=${photo('photo-1551288049-bebda4e38f71')}
               alt="Progress notes and charts"
             />
             <div class="feature-copy">
@@ -260,7 +261,7 @@ export class AppHome extends LitElement {
 
           <a class="feature" href=${resolveRouterPath('feedback')}>
             <img
-              src="https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=500&q=80"
+              src=${photo('photo-1455390582262-044cdead277a')}
               alt="Notebook for feedback and ideas"
             />
             <div class="feature-copy">

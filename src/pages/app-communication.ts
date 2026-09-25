@@ -6,6 +6,7 @@ import { ProgressManager } from '../utils/progress-manager.js';
 import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { resolveRouterPath } from '../router';
+import { photo } from '../utils/photos';
 
 interface RequestCard {
   id: number | string;
@@ -54,7 +55,7 @@ export class AppCommunication extends LitElement {
       phrase: "I'm hungry.",
       category: 'Food',
       color: '#2e7d32',
-      imageUrl: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1498837167922-ddd27525d352'),
     },
     {
       id: 2,
@@ -62,7 +63,7 @@ export class AppCommunication extends LitElement {
       phrase: "I'm thirsty.",
       category: 'Drink',
       color: '#1976a2',
-      imageUrl: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1548839140-29a749e1cf4d'),
     },
     {
       id: 3,
@@ -70,7 +71,7 @@ export class AppCommunication extends LitElement {
       phrase: 'I need the bathroom.',
       category: 'Need',
       color: '#6b5b95',
-      imageUrl: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1584622650111-993a426fbf0a'),
     },
     {
       id: 4,
@@ -78,7 +79,7 @@ export class AppCommunication extends LitElement {
       phrase: 'I need a break.',
       category: 'Sensory',
       color: '#1f7a8c',
-      imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1516321318423-f06f85e504b3'),
     },
     {
       id: 5,
@@ -86,7 +87,7 @@ export class AppCommunication extends LitElement {
       phrase: 'Help please.',
       category: 'Urgent',
       color: '#c0392b',
-      imageUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1517048676732-d65bc937f952'),
     },
     {
       id: 6,
@@ -94,7 +95,7 @@ export class AppCommunication extends LitElement {
       phrase: 'I want to play.',
       category: 'Activity',
       color: '#7a4fb0',
-      imageUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1515488042361-ee00e0ddd4e4'),
     },
     {
       id: 7,
@@ -102,7 +103,7 @@ export class AppCommunication extends LitElement {
       phrase: "I'm tired.",
       category: 'Body',
       color: '#536d8f',
-      imageUrl: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1505693416388-ac5ce068fe85'),
     },
     {
       id: 8,
@@ -110,7 +111,7 @@ export class AppCommunication extends LitElement {
       phrase: 'It is too loud.',
       category: 'Sensory',
       color: '#b65f1f',
-      imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1505740420928-5e560c06d30e'),
     },
     {
       id: 9,
@@ -118,7 +119,7 @@ export class AppCommunication extends LitElement {
       phrase: 'I want my favorite food.',
       category: 'Food',
       color: '#9a6a12',
-      imageUrl: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1482049016688-2d3e1b311543'),
     },
     {
       id: 10,
@@ -126,7 +127,7 @@ export class AppCommunication extends LitElement {
       phrase: 'I want my toy.',
       category: 'Play',
       color: '#a23b72',
-      imageUrl: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1566576912321-d58ddd7a6088'),
     },
     {
       id: 11,
@@ -134,7 +135,7 @@ export class AppCommunication extends LitElement {
       phrase: 'I want to go outside.',
       category: 'Place',
       color: '#2f7d57',
-      imageUrl: 'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1519331379826-f10be5486c6f'),
     },
     {
       id: 12,
@@ -142,7 +143,7 @@ export class AppCommunication extends LitElement {
       phrase: 'I need a calm place.',
       category: 'Sensory',
       color: '#4f7f8f',
-      imageUrl: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1500530855697-b586d89ba3ee'),
     },
   ];
 

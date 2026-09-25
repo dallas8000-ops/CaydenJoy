@@ -6,6 +6,7 @@ import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
+import { photo } from '../utils/photos';
 
 interface NumberItem {
   id: string;
@@ -34,16 +35,16 @@ interface NumbersTabsData {
 // Real quantity-accurate photos (e.g. "6 crayons lined up") can be added
 // through the upload link below using the 'numbers' custom-image category.
 const numberImages: Record<number, string> = {
-  1: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=700&q=85',
-  2: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=700&q=85',
-  3: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=700&q=85',
-  4: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=700&q=85',
-  5: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=700&q=85',
-  6: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=700&q=85',
-  7: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=700&q=85',
-  8: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?auto=format&fit=crop&w=700&q=85',
-  9: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=700&q=85',
-  10: 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=700&q=85',
+  1: photo('photo-1560806887-1e4cd0b6cbd6'),
+  2: photo('photo-1517256064527-09c73fc73e38'),
+  3: photo('photo-1566576912321-d58ddd7a6088'),
+  4: photo('photo-1482049016688-2d3e1b311543'),
+  5: photo('photo-1528825871115-3581a5387919'),
+  6: photo('photo-1551024601-bec78aea704b'),
+  7: photo('photo-1518977676601-b53f82aba655'),
+  8: photo('photo-1601004890684-d8cbf643f5f2'),
+  9: photo('photo-1556909114-f6e7ad7d3136'),
+  10: photo('photo-1490474418585-ba9bad8fd0ea'),
 };
 
 @customElement('app-numbers')

@@ -6,6 +6,7 @@ import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
+import { photo } from '../utils/photos';
 
 const IMAGE_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"%3E%3Crect width="320" height="200" fill="%23dfe8f1"/%3E%3Ccircle cx="160" cy="75" r="38" fill="%2389a0b7"/%3E%3Cpath d="M78 190c10-50 52-75 82-75s72 25 82 75" fill="%2389a0b7"/%3E%3C/svg%3E';
 
@@ -33,17 +34,17 @@ interface PlacesTabsData {
 @customElement('app-places')
 export class AppPlaces extends LitElement {
   @state() places: PlaceItem[] = [
-    { id: 'home', name: 'Home', phrase: 'I want to go home.', color: '#c0392b', imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=700&q=85' },
-    { id: 'school', name: 'School', phrase: 'I am going to school.', color: '#1f7a8c', imageUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=700&q=85' },
-    { id: 'park', name: 'Park', phrase: 'I want to go to the park.', color: '#2e7d32', imageUrl: 'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=700&q=85' },
-    { id: 'store', name: 'Store', phrase: 'We are going to the store.', color: '#9a6a12', imageUrl: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=700&q=85' },
-    { id: 'doctor', name: 'Doctor', phrase: 'We are going to the doctor.', color: '#6b5b95', imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=700&q=85' },
-    { id: 'beach', name: 'Beach', phrase: 'I want to go to the beach.', color: '#1976a2', imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=85' },
-    { id: 'restaurant', name: 'Restaurant', phrase: 'We are going to a restaurant.', color: '#b65f1f', imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=85' },
-    { id: 'library', name: 'Library', phrase: 'We are going to the library.', color: '#795548', imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=700&q=85' },
-    { id: 'zoo', name: 'Zoo', phrase: 'I want to go to the zoo.', color: '#2e7d32', imageUrl: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=700&q=90' },
-    { id: 'therapy', name: 'Therapy', phrase: 'I am going to therapy.', color: '#4f7f8f', imageUrl: 'https://images.unsplash.com/photo-1576765607924-0f4d9a1d563b?auto=format&fit=crop&w=700&q=85' },
-    { id: 'playground', name: 'Playground', phrase: 'I want to go to the playground.', color: '#7a4fb0', imageUrl: 'https://images.unsplash.com/photo-1596997000103-e597b3ca50df?auto=format&fit=crop&w=700&q=85' },
+    { id: 'home', name: 'Home', phrase: 'I want to go home.', color: '#c0392b', imageUrl: photo('photo-1564013799919-ab600027ffc6') },
+    { id: 'school', name: 'School', phrase: 'I am going to school.', color: '#1f7a8c', imageUrl: photo('photo-1580582932707-520aed937b7b') },
+    { id: 'park', name: 'Park', phrase: 'I want to go to the park.', color: '#2e7d32', imageUrl: photo('photo-1519331379826-f10be5486c6f') },
+    { id: 'store', name: 'Store', phrase: 'We are going to the store.', color: '#9a6a12', imageUrl: photo('photo-1604719312566-8912e9227c6a') },
+    { id: 'doctor', name: 'Doctor', phrase: 'We are going to the doctor.', color: '#6b5b95', imageUrl: photo('photo-1519494026892-80bbd2d6fd0d') },
+    { id: 'beach', name: 'Beach', phrase: 'I want to go to the beach.', color: '#1976a2', imageUrl: photo('photo-1507525428034-b723cf961d3e') },
+    { id: 'restaurant', name: 'Restaurant', phrase: 'We are going to a restaurant.', color: '#b65f1f', imageUrl: photo('photo-1517248135467-4c7edcad34c4') },
+    { id: 'library', name: 'Library', phrase: 'We are going to the library.', color: '#795548', imageUrl: photo('photo-1521587760476-6c12a4b040da') },
+    { id: 'zoo', name: 'Zoo', phrase: 'I want to go to the zoo.', color: '#2e7d32', imageUrl: photo('photo-1546182990-dffeafbe841d') },
+    { id: 'therapy', name: 'Therapy', phrase: 'I am going to therapy.', color: '#4f7f8f', imageUrl: photo('therapy') },
+    { id: 'playground', name: 'Playground', phrase: 'I want to go to the playground.', color: '#7a4fb0', imageUrl: photo('photo-1596997000103-e597b3ca50df') },
   ];
 
   @state() selectedPlace: PlaceItem | null = null;

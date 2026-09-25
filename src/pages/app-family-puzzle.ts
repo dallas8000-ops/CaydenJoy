@@ -6,6 +6,7 @@ import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { PremiumManager } from '../utils/premium-manager.js';
 import { resolveRouterPath } from '../router';
+import { photo } from '../utils/photos';
 
 type PuzzleMode = 'family' | 'objects';
 
@@ -45,31 +46,31 @@ export class AppFamilyPuzzle extends LitElement {
       id: 'mom',
       label: 'Mom',
       phrase: 'Mom.',
-      imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1544717305-2782549b5136'),
     },
     {
       id: 'dad',
       label: 'Dad',
       phrase: 'Dad.',
-      imageUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1508214751196-bcfd4ca60f91'),
     },
     {
       id: 'brother',
       label: 'Brother',
       phrase: 'Brother.',
-      imageUrl: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1503454537195-1dcabb73ffb9'),
     },
     {
       id: 'dog',
       label: 'Dog',
       phrase: 'Dog.',
-      imageUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1552053831-71594a27632d'),
     },
     {
       id: 'grandad',
       label: 'Grandad',
       phrase: 'Grandad.',
-      imageUrl: 'https://images.unsplash.com/photo-1584719877723-e6392ef5c1be?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('grandad'),
     },
   ];
 
@@ -78,37 +79,37 @@ export class AppFamilyPuzzle extends LitElement {
       id: 'cup',
       label: 'Cup',
       phrase: 'Cup.',
-      imageUrl: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1513558161293-cdaf765ed2fd'),
     },
     {
       id: 'shoes',
       label: 'Shoes',
       phrase: 'Shoes.',
-      imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1542291026-7eec264c27ff'),
     },
     {
       id: 'toothbrush',
       label: 'Toothbrush',
       phrase: 'Toothbrush.',
-      imageUrl: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1609840114035-3c981b782dfe'),
     },
     {
       id: 'ball',
       label: 'Ball',
       phrase: 'Ball.',
-      imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1518611012118-696072aa579a'),
     },
     {
       id: 'headphones',
       label: 'Headphones',
       phrase: 'Headphones.',
-      imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1505740420928-5e560c06d30e'),
     },
     {
       id: 'backpack',
       label: 'Backpack',
       phrase: 'Backpack.',
-      imageUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=700&q=85',
+      imageUrl: photo('photo-1553062407-98eeb64c6a62'),
     },
   ];
 

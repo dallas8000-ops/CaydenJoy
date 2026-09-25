@@ -23,7 +23,8 @@ export default defineConfig({
         swDest: 'dist/sw.js',
         globDirectory: 'dist',
         globPatterns: [
-          '**/*.{html,js,css,json,png}',
+          // jpg/svg: bundled board photos + symbols, so the PWA works fully offline
+          '**/*.{html,js,css,json,png,jpg,svg}',
         ],
       },
       injectRegister: false,

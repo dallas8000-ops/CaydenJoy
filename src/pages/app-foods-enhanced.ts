@@ -6,6 +6,7 @@ import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
+import { photo } from '../utils/photos';
 
 interface FoodItem {
   id: string;
@@ -29,18 +30,18 @@ interface FoodsTabsData {
 @customElement('app-foods-enhanced')
 export class AppFoodsEnhanced extends LitElement {
   @state() foods: FoodItem[] = [
-    { id: 'chicken', name: 'Chicken', imageUrl: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=700&q=85' },
-    { id: 'noodles', name: 'Noodles', imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=700&q=85' },
-    { id: 'rice', name: 'Rice', imageUrl: 'https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?auto=format&fit=crop&w=700&q=85' },
-    { id: 'cereal', name: 'Cereal', imageUrl: 'https://images.unsplash.com/photo-1521483451569-e33803c0330c?auto=format&fit=crop&w=700&q=85' },
-    { id: 'bread', name: 'Bread', imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=700&q=85' },
-    { id: 'potatoes', name: 'Potatoes', imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=700&q=85' },
-    { id: 'donut', name: 'Donut', imageUrl: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=700&q=85' },
-    { id: 'candy', name: 'Candy', imageUrl: 'https://images.unsplash.com/photo-1581798459219-318e76aecc7b?auto=format&fit=crop&w=700&q=85' },
-    { id: 'juice', name: 'Juice', imageUrl: 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?auto=format&fit=crop&w=700&q=85' },
-    { id: 'water', name: 'Water', imageUrl: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=700&q=85' },
-    { id: 'apple', name: 'Apple', imageUrl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=700&q=85' },
-    { id: 'banana', name: 'Banana', imageUrl: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=700&q=85' },
+    { id: 'chicken', name: 'Chicken', imageUrl: photo('photo-1598103442097-8b74394b95c6') },
+    { id: 'noodles', name: 'Noodles', imageUrl: photo('photo-1569718212165-3a8278d5f624') },
+    { id: 'rice', name: 'Rice', imageUrl: photo('photo-1536304993881-ff6e9eefa2a6') },
+    { id: 'cereal', name: 'Cereal', imageUrl: photo('photo-1521483451569-e33803c0330c') },
+    { id: 'bread', name: 'Bread', imageUrl: photo('photo-1509440159596-0249088772ff') },
+    { id: 'potatoes', name: 'Potatoes', imageUrl: photo('photo-1518977676601-b53f82aba655') },
+    { id: 'donut', name: 'Donut', imageUrl: photo('photo-1551024601-bec78aea704b') },
+    { id: 'candy', name: 'Candy', imageUrl: photo('photo-1581798459219-318e76aecc7b') },
+    { id: 'juice', name: 'Juice', imageUrl: photo('photo-1622597467836-f3285f2131b8') },
+    { id: 'water', name: 'Water', imageUrl: photo('photo-1548839140-29a749e1cf4d') },
+    { id: 'apple', name: 'Apple', imageUrl: photo('photo-1560806887-1e4cd0b6cbd6') },
+    { id: 'banana', name: 'Banana', imageUrl: photo('photo-1571771894821-ce9b6c11b08e') },
   ];
 
   @state() selectedFood: FoodItem | null = null;
