@@ -20,7 +20,7 @@
     "eas-build-post-install": "node scripts/patch-capacitor-java.js"
   },
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "dependencies": {
     "@capacitor/android": "^7.0.0",
     "@capacitor/cli": "^7.0.0",
