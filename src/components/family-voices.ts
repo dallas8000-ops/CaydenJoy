@@ -43,6 +43,8 @@ export class FamilyVoices extends LitElement {
   @state() private wordSpeaker = '';
   @state() private message = '';
   @state() private messageKind: 'info' | 'error' = 'info';
+  /** Which section the status line shows under, so it appears right below the button that was tapped. */
+  @state() private messageSection: ClipKind = 'praise';
   @state() private secondsLeft = 0;
 
   private store = VoiceClipStore.getInstance();
@@ -89,7 +91,7 @@ export class FamilyVoices extends LitElement {
     .clip-text { font-weight: 700; color: #243041; overflow-wrap: anywhere; }
     .clip-meta { color: #6a7787; font-weight: 600; font-size: 0.85rem; }
     .empty { color: #6a7787; font-style: italic; margin: 0 0 0.6rem; }
-    .msg { margin: 0; font-weight: 700; }
+    .msg { margin: 0.6rem 0 0; font-weight: 700; }
     .msg.info { color: #1f6b56; }
     .msg.error { color: #a5281b; }
     @media (max-width: 640px) { .fields { grid-template-columns: 1fr; } }
@@ -111,7 +113,8 @@ export class FamilyVoices extends LitElement {
     this.store.stop();
   }
 
-  private say(text: string, kind: 'info' | 'error' = 'info'): void {
+  private say(text: string, kind: 'info' | 'error' = 'info', section: ClipKind = this.kind): void {
+    this.messageSection = section;
     this.message = text;
     this.messageKind = kind;
   }
@@ -119,11 +122,11 @@ export class FamilyVoices extends LitElement {
   private async record(kind: ClipKind): Promise<void> {
     if (this.phase !== 'idle') return;
     if (kind === 'word' && !this.wordLabel.trim()) {
-      this.say('Type the word or name first, for example "Grandad" or "want".', 'error');
+      this.say('Type the word or name first, for example "Grandad" or "want".', 'error', kind);
       return;
     }
     if (kind === 'praise' && this.clips.filter((c) => c.kind === 'praise').length >= MAX_PRAISE_CLIPS) {
-      this.say(`You can keep up to ${MAX_PRAISE_CLIPS} praise clips. Delete one first.`, 'error');
+      this.say(`You can keep up to ${MAX_PRAISE_CLIPS} praise clips. Delete one first.`, 'error', kind);
       return;
     }
     this.store.stop();
@@ -227,7 +230,7 @@ export class FamilyVoices extends LitElement {
     const what = clip.kind === 'praise' ? 'this praise clip' : `the recording for "${clip.label}"`;
     if (!confirm(`Delete ${what}?`)) return;
     await this.store.remove(clip.id);
-    this.say('Deleted.');
+    this.say('Deleted.', 'info', clip.kind);
   }
 
   private renderClip(clip: VoiceClip) {
@@ -244,6 +247,11 @@ export class FamilyVoices extends LitElement {
         </span>
       </li>
     `;
+  }
+
+  private renderMessage(kind: ClipKind) {
+    if (this.messageSection !== kind || !this.message) return '';
+    return html`<p class="msg ${this.messageKind}" data-testid="voice-message" role="status" aria-live="polite">${this.message}</p>`;
   }
 
   private renderRecorder(kind: ClipKind) {
@@ -302,6 +310,7 @@ export class FamilyVoices extends LitElement {
             <span class="clip-meta">${praise.length}/${MAX_PRAISE_CLIPS} · up to ${MAX_CLIP_MS / 1000} seconds</span>
           </div>
           ${this.renderRecorder('praise')}
+          ${this.renderMessage('praise')}
         </section>
 
         <section>
@@ -323,9 +332,9 @@ export class FamilyVoices extends LitElement {
             <span class="clip-meta">Recording a word again replaces the old one.</span>
           </div>
           ${this.renderRecorder('word')}
+          ${this.renderMessage('word')}
         </section>
-
-        <p class="msg ${this.messageKind}" data-testid="voice-message" aria-live="polite">${this.message}</p>
+
       </div>
     `;
   }
