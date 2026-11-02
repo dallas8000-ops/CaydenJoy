@@ -1,9 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager.js';
-import { AccessibilityManager } from '../utils/accessibility-manager.js';
 import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { speakWord } from '../utils/voice-clips.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
 import { photo } from '../utils/photos';
@@ -52,7 +52,6 @@ export class AppFoodsEnhanced extends LitElement {
   @state() customFoods: FoodItem[] = [];
 
   private premiumManager = PremiumManager.getInstance();
-  private accessibilityManager = AccessibilityManager.getInstance();
   private customImagesManager = CustomImagesManager.getInstance();
   private sentenceBuilder = SentenceBuilder.getInstance();
   private progressManager = ProgressManager.getInstance();
@@ -165,7 +164,7 @@ export class AppFoodsEnhanced extends LitElement {
   private selectFood(food: FoodItem): void {
     this.selectedFood = food;
     this.progressManager.log('activity', 'Foods', food.name);
-    this.accessibilityManager.speakNow(food.name, 0.9);
+    speakWord(food.name, food.name, 0.9);
     this.sentenceBuilder.addWord({ label: food.name, imageUrl: food.imageUrl });
   }
 

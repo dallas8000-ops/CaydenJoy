@@ -21,6 +21,7 @@ import { ProgressManager } from '../utils/progress-manager.js';
 import { LearningEngine, type LearningCard, type Trial, type TrialResult } from '../utils/learning-engine.js';
 import { LearningSettingsManager, type LearningSettings } from '../utils/learning-settings.js';
 import { TrialStore, type LearningGame as GameId } from '../utils/trial-store.js';
+import { VoiceClipStore } from '../utils/voice-clips.js';
 
 export interface GameCard extends LearningCard {
   /** Photo for places and uploads. */
@@ -61,8 +62,11 @@ export class LearningGameElement extends LitElement {
   private learningSettings = LearningSettingsManager.getInstance();
   private settings: LearningSettings = this.learningSettings.get();
   private engine = new LearningEngine({ fieldSize: this.settings.startingChoices });
+  private voiceClips = VoiceClipStore.getInstance();
   private busy = false;
   private timers: number[] = [];
+  /** Bumped on every new trial / disconnect so a late-finishing praise clip can't act on a stale trial. */
+  private generation = 0;
   private unsubscribe?: () => void;
 
   static styles = css`
@@ -157,6 +161,7 @@ export class LearningGameElement extends LitElement {
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
+    this.generation += 1;
     this.clearTimers();
     this.unsubscribe?.();
   }
@@ -188,6 +193,7 @@ export class LearningGameElement extends LitElement {
   }
 
   private startTrial(): void {
+    this.generation += 1;
     this.clearTimers();
     this.busy = false;
     this.feedback = null;
@@ -221,9 +227,8 @@ export class LearningGameElement extends LitElement {
       else this.promptedCount += 1;
       const milestone = outcome.result === 'independent' && outcome.streak > 0 && outcome.streak % 5 === 0;
       const praise = LearningEngine.praise(target, outcome.result);
-      this.speak(milestone ? `${praise} Five in a row!` : praise);
       this.reward(milestone);
-      this.later(() => this.startTrial(), milestone ? CORRECT_PAUSE + 800 : CORRECT_PAUSE);
+      this.praiseThenNext(milestone ? `${praise} Five in a row!` : praise, milestone ? CORRECT_PAUSE + 800 : CORRECT_PAUSE);
       return;
     }
 
@@ -254,6 +259,22 @@ export class LearningGameElement extends LitElement {
       this.countLit = 0;
       this.busy = false;
     }, pause);
+  }
+
+  /**
+   * Spoken praise (which names the item), then the next trial. With the
+   * "family voice" reward, a recorded family clip plays first; if none is
+   * recorded, or it fails, the praise is spoken straight away.
+   */
+  private praiseThenNext(text: string, pause: number): void {
+    const generation = this.generation;
+    const go = () => {
+      if (generation !== this.generation || !this.isConnected) return;
+      this.speak(text);
+      this.later(() => this.startTrial(), pause);
+    };
+    if (this.settings.rewardStyle === 'family') void this.voiceClips.playPraise().then(go);
+    else go();
   }
 
   private reward(milestone: boolean): void {
