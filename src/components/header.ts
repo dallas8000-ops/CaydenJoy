@@ -145,11 +145,12 @@ export class AppHeader extends LitElement {
           <a href="${resolveRouterPath('places')}">Places</a>
           <a href="${resolveRouterPath('family-puzzle')}">Puzzle</a>
           <a href="${resolveRouterPath('home-enhanced')}">Quick</a>
-          <a href="${resolveRouterPath('custom-images')}">📸</a>
-          ${IS_PLAY_BUILD ? '' : html`<a href="${resolveRouterPath('upgrade')}">🔓</a>`}
-          <a href="${resolveRouterPath('premium')}">👑</a>
-          ${devModeEnabled ? html`<a href="${resolveRouterPath('admin')}">⚙️</a>` : ''}
-          <a href="${resolveRouterPath('settings')}">🛠️</a>
+          <a href="${resolveRouterPath('custom-images')}" title="My photos" aria-label="My photos">📸</a>
+          ${IS_PLAY_BUILD ? '' : html`<a href="${resolveRouterPath('upgrade')}" title="Unlock" aria-label="Unlock">🔓</a>`}
+          <a href="${resolveRouterPath('premium')}" title="Learning Plus" aria-label="Learning Plus">👑</a>
+          <!-- The gear is always Settings. The dev-only Admin tool gets the wrench so the two are never confused. -->
+          <a href="${resolveRouterPath('settings')}" title="Settings" aria-label="Settings" data-testid="nav-settings">⚙️</a>
+          ${devModeEnabled ? html`<a href="${resolveRouterPath('admin')}" title="Admin (dev only)" aria-label="Admin, developer tools" data-testid="nav-admin">🛠️</a>` : ''}
         </nav>
       </header>
     `;
