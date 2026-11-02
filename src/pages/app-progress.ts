@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { ProgressManager, ProgressSummary } from '../utils/progress-manager.js';
 import { TrialStore, type TrialEvent } from '../utils/trial-store.js';
 import { buildReport, trialsToCsv, reportToHtml, type LearningReport } from '../utils/learning-report.js';
+import { exportFile, printOrShareHtml, isNativeApp } from '../utils/native-export.js';
 
 @customElement('app-progress')
 export class AppProgress extends LitElement {
@@ -10,6 +11,7 @@ export class AppProgress extends LitElement {
   @state() private report: LearningReport = buildReport([]);
   @state() private trials: TrialEvent[] = [];
   @state() private loadingLearning = true;
+  @state() private exportMessage = '';
 
   private progressManager = ProgressManager.getInstance();
   private trialStore = TrialStore.getInstance();
@@ -212,28 +214,43 @@ export class AppProgress extends LitElement {
     this.loadingLearning = false;
   }
 
-  private exportCsv(): void {
-    const blob = new Blob([trialsToCsv(this.trials)], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `caydenjoy-learning-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  private dateStamp(): string {
+    return new Date().toISOString().slice(0, 10);
   }
 
-  /** Prints only the report (not the app around it). Choose "Save as PDF" in the print dialog for a file. */
-  private printReport(): void {
-    const frame = document.createElement('iframe');
-    frame.setAttribute('aria-hidden', 'true');
-    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
-    frame.srcdoc = reportToHtml(buildReport(this.trials));
-    frame.onload = () => {
-      frame.contentWindow?.focus();
-      frame.contentWindow?.print();
-      setTimeout(() => frame.remove(), 60000);
-    };
-    document.body.appendChild(frame);
+  /** CSV of every answer: Android Share menu on the tablet, a download in the browser. */
+  private async exportCsv(): Promise<void> {
+    this.exportMessage = '';
+    try {
+      const outcome = await exportFile(
+        `caydenjoy-learning-${this.dateStamp()}.csv`,
+        trialsToCsv(this.trials),
+        'text/csv;charset=utf-8',
+        "Cayden's learning results",
+      );
+      if (outcome === 'downloaded') this.exportMessage = 'CSV downloaded.';
+    } catch (error) {
+      console.error('CSV export failed:', error);
+      this.exportMessage = 'Could not export the CSV. Please try again.';
+    }
+  }
+
+  /** Printable report: print dialog in the browser; Share menu on the tablet (open in Chrome to print or save as PDF). */
+  private async printReport(): Promise<void> {
+    this.exportMessage = '';
+    try {
+      const outcome = await printOrShareHtml(
+        `caydenjoy-report-${this.dateStamp()}.html`,
+        reportToHtml(buildReport(this.trials)),
+        "Cayden's learning report",
+      );
+      if (outcome === 'shared') {
+        this.exportMessage = 'Report shared. To print or save as PDF, open it in Chrome and use Share > Print.';
+      }
+    } catch (error) {
+      console.error('Report export failed:', error);
+      this.exportMessage = 'Could not create the report. Please try again.';
+    }
   }
 
   private async clearLearning(): Promise<void> {
@@ -347,10 +364,15 @@ export class AppProgress extends LitElement {
           <h2 class="section-title">Learning games</h2>
           ${this.renderLearning()}
           <div class="actions">
-            <button class="primary" @click=${this.printReport} ?disabled=${this.trials.length === 0}>Print report / Save as PDF</button>
-            <button @click=${this.exportCsv} ?disabled=${this.trials.length === 0}>Export CSV</button>
+            <button class="primary" data-testid="print-report" @click=${this.printReport} ?disabled=${this.trials.length === 0}>
+              ${isNativeApp() ? 'Share report (print / PDF)' : 'Print report / Save as PDF'}
+            </button>
+            <button data-testid="export-csv" @click=${this.exportCsv} ?disabled=${this.trials.length === 0}>
+              ${isNativeApp() ? 'Share CSV' : 'Export CSV'}
+            </button>
             <button class="danger" @click=${this.clearLearning} ?disabled=${this.trials.length === 0}>Clear learning results</button>
           </div>
+          ${this.exportMessage ? html`<p class="rule" role="status" data-testid="export-message">${this.exportMessage}</p>` : ''}
         </div>
 
         <h2 class="section-title">Communication and activity log</h2>

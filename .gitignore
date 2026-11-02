@@ -12,3 +12,6 @@ types
 *.jks
 .env*
 !.env.example
+
+# Source photo for scripts/make-icons.py (kept local; the repo is public)
+cayden_icon_photo.jpg
