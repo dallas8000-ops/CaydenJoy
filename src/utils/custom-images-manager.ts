@@ -9,6 +9,22 @@ export interface CustomImage {
   name: string;
   dataUrl: string; // Base64 encoded image
   uploadedAt: number;
+  /** Optional one-line fact spoken after a wrong pick in the learning games ("A cup is for drinking."). Not used for family photos. */
+  fact?: string;
+  /** The name means more than one ("shoes"), so the app says "Those are shoes". */
+  plural?: boolean;
+}
+
+export interface CustomImageDetails {
+  fact?: string;
+  plural?: boolean;
+}
+
+const MAX_FACT_LENGTH = 120;
+
+function cleanDetails(details: CustomImageDetails = {}): CustomImageDetails {
+  const fact = (details.fact ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_FACT_LENGTH);
+  return { fact: fact || undefined, plural: details.plural ? true : undefined };
 }
 
 const CUSTOM_IMAGES_KEY = 'caydenjoy_custom_images';
@@ -73,7 +89,7 @@ export class CustomImagesManager {
     }
   }
 
-  addImage(category: string, name: string, dataUrl: string): CustomImage | null {
+  addImage(category: string, name: string, dataUrl: string, details: CustomImageDetails = {}): CustomImage | null {
     try {
       // Validate
       if (!category || !name || !dataUrl) {
@@ -96,7 +112,8 @@ export class CustomImagesManager {
         category,
         name,
         dataUrl,
-        uploadedAt: Date.now()
+        uploadedAt: Date.now(),
+        ...cleanDetails(details),
       };
 
       images.push(newImage);
@@ -132,6 +149,23 @@ export class CustomImagesManager {
       return false;
     } catch (e) {
       console.error('Error updating image:', e);
+      return false;
+    }
+  }
+
+  /** Set or clear the spoken fact and plural flag on an existing photo. */
+  updateDetails(id: string, details: CustomImageDetails): boolean {
+    try {
+      const images = this.getImages();
+      const image = images.find(img => img.id === id);
+      if (!image) return false;
+      const clean = cleanDetails(details);
+      image.fact = clean.fact;
+      image.plural = clean.plural;
+      this.saveImages(images);
+      return true;
+    } catch (e) {
+      console.error('Error updating image details:', e);
       return false;
     }
   }

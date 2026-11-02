@@ -7,6 +7,7 @@ import '@shoelace-style/shoelace/dist/components/option/option.js';
 import '@shoelace-style/shoelace/dist/components/switch/switch.js';
 import { AccessibilityManager, AccessibilitySettings, ColorTheme, FontSize } from '../utils/accessibility-manager.js';
 import { PremiumManager } from '../utils/premium-manager.js';
+import { LearningSettingsManager, LearningSettings, RewardStyle } from '../utils/learning-settings.js';
 import { resolveRouterPath } from '../router.js';
 import { styles } from '../styles/shared-styles.js';
 import '../components/header.js';
@@ -16,9 +17,13 @@ import '../components/footer.js';
 export class AppSettings extends LitElement {
   @state() settings: AccessibilitySettings = AccessibilityManager.getInstance().getSettings();
 
+  @state() learning: LearningSettings = LearningSettingsManager.getInstance().get();
+
   private accessibilityManager = AccessibilityManager.getInstance();
   private premiumManager = PremiumManager.getInstance();
+  private learningSettings = LearningSettingsManager.getInstance();
   private unsubscribe?: () => void;
+  private unsubscribeLearning?: () => void;
 
   static styles = [
     styles,
@@ -198,6 +203,9 @@ export class AppSettings extends LitElement {
     this.unsubscribe = this.accessibilityManager.subscribe((settings) => {
       this.settings = settings;
     });
+    this.unsubscribeLearning = this.learningSettings.subscribe((learning) => {
+      this.learning = learning;
+    });
   }
 
   disconnectedCallback(): void {
@@ -205,6 +213,20 @@ export class AppSettings extends LitElement {
     if (this.unsubscribe) {
       this.unsubscribe();
     }
+    this.unsubscribeLearning?.();
+  }
+
+  private onStartingChoicesChange(e: Event): void {
+    const value = Number((e.target as HTMLSelectElement).value) as LearningSettings['startingChoices'];
+    this.learningSettings.save({ startingChoices: value });
+  }
+
+  private onRewardStyleChange(e: Event): void {
+    this.learningSettings.save({ rewardStyle: (e.target as HTMLSelectElement).value as RewardStyle });
+  }
+
+  private onExplainWhyChange(e: Event): void {
+    this.learningSettings.save({ explainWhy: (e.target as HTMLInputElement).checked });
   }
 
   private onThemeChange(theme: ColorTheme): void {
@@ -414,6 +436,50 @@ export class AppSettings extends LitElement {
                 <p class="setting-description">Learning Plus unlocks a preferred voice and speaking rate for every board.</p>
                 <sl-button href=${resolveRouterPath('premium')} size="medium">View Learning Plus</sl-button>
               `}
+            </div>
+          </sl-card>
+
+          <!-- Learning Games -->
+          <sl-card>
+            <div slot="header">
+              <h2>🧩 Learning Games</h2>
+            </div>
+            <div class="setting-group">
+              <div class="setting-item">
+                <label class="setting-label">Pictures to choose from:</label>
+                <sl-select value=${String(this.learning.startingChoices)} @sl-change=${this.onStartingChoicesChange}>
+                  <sl-option value="2">2 (easiest)</sl-option>
+                  <sl-option value="3">3</sl-option>
+                  <sl-option value="4">4</sl-option>
+                  <sl-option value="6">6 (hardest)</sl-option>
+                </sl-select>
+              </div>
+              <p class="setting-description">
+                Start small. The game shows fewer pictures by itself whenever he needs help.
+              </p>
+
+              <div class="setting-item">
+                <label class="setting-label">Celebrate a right answer with:</label>
+                <sl-select value=${this.learning.rewardStyle} @sl-change=${this.onRewardStyleChange}>
+                  <sl-option value="voice">Spoken praise only</sl-option>
+                  <sl-option value="sound">Praise and a happy sound</sl-option>
+                  <sl-option value="animation">Praise and a small animation</sl-option>
+                </sl-select>
+              </div>
+              <p class="setting-description">
+                Wrong answers never get a buzzer or a red mark, only a calm hint.
+              </p>
+
+              <div class="setting-item">
+                <label class="setting-label">Explain wrong answers:</label>
+                <sl-switch
+                  ?checked=${this.learning.explainWhy}
+                  @sl-change=${this.onExplainWhyChange}
+                ></sl-switch>
+              </div>
+              <p class="setting-description">
+                After a wrong pick, says one short reason, for example: "That's a cup. A cup is for drinking. Here is the ball."
+              </p>
             </div>
           </sl-card>
 

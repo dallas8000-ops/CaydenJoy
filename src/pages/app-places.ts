@@ -7,6 +7,9 @@ import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
 import { photo } from '../utils/photos';
+import '../components/learning-game.js';
+import type { GameCard } from '../components/learning-game.js';
+import { placeFact } from '../utils/card-attributes.js';
 
 const IMAGE_FALLBACK = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200"%3E%3Crect width="320" height="200" fill="%23dfe8f1"/%3E%3Ccircle cx="160" cy="75" r="38" fill="%2389a0b7"/%3E%3Cpath d="M78 190c10-50 52-75 82-75s72 25 82 75" fill="%2389a0b7"/%3E%3C/svg%3E';
 
@@ -17,6 +20,8 @@ interface PlaceItem {
   color: string;
   imageUrl: string;
   isCustom?: boolean;
+  fact?: string;
+  plural?: boolean;
 }
 
 interface PlaceTab {
@@ -53,6 +58,8 @@ export class AppPlaces extends LitElement {
   @state() showNewTabModal = false;
   @state() newTabName = '';
   @state() customPlaces: PlaceItem[] = [];
+  @state() mode: 'explore' | 'play' = 'explore';
+  private playCards: GameCard[] = [];
 
   private premiumManager = PremiumManager.getInstance();
   private accessibilityManager = AccessibilityManager.getInstance();
@@ -92,6 +99,9 @@ export class AppPlaces extends LitElement {
     .modal-input { width: 100%; box-sizing: border-box; margin-bottom: 1rem; padding: 0.85rem; border: 2px solid #c9d4e1; border-radius: 0.4rem; font-size: 1rem; }
     .modal-buttons { display: flex; gap: 0.75rem; justify-content: flex-end; }
     .modal-btn-secondary { border: 0; background: #e8edf3; color: #243041; }
+    .mode-switch { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0 0 1rem; padding: 0.35rem; background: #e8edf3; border-radius: 0.5rem; }
+    .mode-switch button { min-height: 48px; min-width: 120px; border: 0; border-radius: 0.4rem; background: transparent; color: #243041; font-size: 1rem; font-weight: 900; cursor: pointer; }
+    .mode-switch button.active { background: #243041; color: #fff; }
     @media (max-width: 640px) { :host { padding: 0.8rem; } h1 { font-size: 1.55rem; } .place-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; } .place-button { grid-template-rows: 116px auto; min-height: 210px; } .selected-card { grid-template-columns: 1fr; } .selected-card img { width: 100%; height: 160px; } }
   `;
 
@@ -104,7 +114,7 @@ export class AppPlaces extends LitElement {
   private loadCustomImages(): void {
     this.customPlaces = this.customImagesManager
       .getImagesByCategory(this.CUSTOM_CATEGORY)
-      .map((img) => ({ id: `custom-${img.id}`, name: img.name, phrase: `I want to go to ${img.name}.`, color: '#2e8f74', imageUrl: img.dataUrl, isCustom: true }));
+      .map((img) => ({ id: `custom-${img.id}`, name: img.name, phrase: `I want to go to ${img.name}.`, color: '#2e8f74', imageUrl: img.dataUrl, isCustom: true, fact: img.fact, plural: img.plural }));
   }
 
   private normalizePlace(place: any, fallback: PlaceItem): PlaceItem {
@@ -173,6 +183,22 @@ export class AppPlaces extends LitElement {
     this.saveTabs();
   }
 
+  private setMode(mode: 'explore' | 'play'): void {
+    if (mode === 'play') {
+      const places = [...(this.getActiveTab()?.places ?? this.places), ...this.customPlaces];
+      this.playCards = places.map((p) => ({
+        id: p.id,
+        label: p.name,
+        category: 'place',
+        imageUrl: p.imageUrl,
+        isCustom: p.isCustom,
+        fact: p.isCustom ? p.fact : placeFact(p.id)?.fact,
+        plural: p.isCustom ? p.plural : undefined,
+      }));
+    }
+    this.mode = mode;
+  }
+
   private selectPlace(place: PlaceItem): void {
     this.selectedPlace = place;
     this.progressManager.log('activity', 'Places', place.name);
@@ -192,10 +218,13 @@ export class AppPlaces extends LitElement {
       <div class="container">
         <h1>Places</h1>
         <p class="subtitle">Real place photos for daily routines and transitions.</p>
+        <div class="mode-switch" role="group" aria-label="Explore or play"><button class=${this.mode === 'explore' ? 'active' : ''} aria-pressed=${this.mode === 'explore'} @click=${() => this.setMode('explore')}>Explore</button><button class=${this.mode === 'play' ? 'active' : ''} aria-pressed=${this.mode === 'play'} data-testid="play-mode" @click=${() => this.setMode('play')}>Play</button></div>
+        ${this.mode === 'play' ? html`<learning-game game="places" .cards=${this.playCards}></learning-game>` : html`
         <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real place photos</a>
         ${this.selectedPlace ? html`<div class="selected-card" style="--place-color: ${this.selectedPlace.color}"><img src=${this.selectedPlace.imageUrl} alt=${this.selectedPlace.name} /><div><div class="selected-name">${this.selectedPlace.name}</div><div class="selected-phrase">${this.selectedPlace.phrase}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
         <div class="place-grid">${currentPlaces.map((place) => html`<button class="place-button" style="--place-color: ${place.color}" @click=${() => this.selectPlace(place)}><img src=${place.imageUrl} alt=${place.name} @error=${this.useImageFallback} /><div class="card-copy"><div class="place-name">${place.name}${place.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div><div class="place-phrase">${place.phrase}</div></div></button>`)}</div>
+        `}
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;
