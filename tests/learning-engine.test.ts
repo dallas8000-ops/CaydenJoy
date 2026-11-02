@@ -138,3 +138,25 @@ test('rejects a tap on a card that is not on screen', () => {
   const offscreen = objects.find((c) => !t.choices.includes(c.id))!;
   assert.throws(() => e.answer(offscreen.id));
 });
+
+test('caregiver facts: short answers become one clean sentence', () => {
+  const cup = { label: 'Cup' };
+  const shoes = { label: 'Shoes', plural: true };
+  const apple = { label: 'Apple' };
+  assert.equal(LearningEngine.normalizeFact(cup, 'for drinking'), 'A cup is for drinking.');
+  assert.equal(LearningEngine.normalizeFact(apple, 'For eating'), 'An apple is for eating.');
+  assert.equal(LearningEngine.normalizeFact(shoes, 'for walking'), 'Shoes are for walking.');
+  assert.equal(LearningEngine.normalizeFact(cup, 'to hold juice!'), 'A cup is to hold juice!');
+  assert.equal(LearningEngine.normalizeFact(cup, 'we drink from it'), 'We drink from it.');
+  assert.equal(LearningEngine.normalizeFact(cup, '   '), '');
+  assert.equal(LearningEngine.normalizeFact(cup, 'x'.repeat(300)).length, 121); // 120 chars + end mark
+});
+
+test('describe: what the upload preview shows; people never get facts', () => {
+  assert.equal(
+    LearningEngine.describe({ id: 'p', label: 'Blue cup', category: 'object', fact: 'for drinking' }),
+    "That's a blue cup. A blue cup is for drinking.",
+  );
+  assert.equal(LearningEngine.describe({ id: 'p', label: 'Socks', category: 'object', plural: true }), 'Those are socks.');
+  assert.equal(LearningEngine.describe({ id: 'g', label: 'Grandma', category: 'person', fact: 'for hugs' }), "That's Grandma.");
+});

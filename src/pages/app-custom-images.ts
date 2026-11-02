@@ -3,6 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { PremiumManager } from '../utils/premium-manager';
 import { CustomImagesManager, CustomImage } from '../utils/custom-images-manager';
 import { resolveRouterPath } from '../router';
+import { LearningEngine, MAX_FACT_LENGTH } from '../utils/learning-engine';
 
 @customElement('app-custom-images')
 export class CustomImages extends LitElement {
@@ -13,6 +14,11 @@ export class CustomImages extends LitElement {
   @state() isPremium = false;
   @state() storageInfo = { used: 0, max: 0, percentage: 0 };
   @state() uploadMessage = '';
+  @state() imageFact = '';
+  @state() imagePlural = false;
+  @state() editingId: string | null = null;
+  @state() editFact = '';
+  @state() editPlural = false;
 
   private premiumManager = PremiumManager.getInstance();
   private imagesManager = CustomImagesManager.getInstance();
@@ -322,6 +328,72 @@ export class CustomImages extends LitElement {
       border-bottom: 2px solid #667eea;
     }
 
+    .fact-block {
+      text-align: left;
+      margin: 10px 0;
+    }
+
+    .hint {
+      color: #555;
+      font-size: 14px;
+      margin: 4px 0 8px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .check-row input {
+      width: 20px;
+      height: 20px;
+    }
+
+    .speech-preview {
+      background: #eef7f3;
+      border-left: 4px solid #2e8f74;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: #1f463b;
+      font-size: 15px;
+      margin-top: 8px;
+    }
+
+    .image-card-fact {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+
+    .edit-btn {
+      background: #e8edf3;
+      color: #243041;
+    }
+
+    .edit-btn:hover {
+      background: #d8e0ea;
+    }
+
+    .fact-editor {
+      text-align: left;
+      margin-bottom: 8px;
+    }
+
+    .fact-editor input[type='text'] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
     .empty-message {
       text-align: center;
       color: #999;
@@ -405,13 +477,18 @@ export class CustomImages extends LitElement {
       const result = this.imagesManager.addImage(
         this.selectedCategory,
         this.imageName,
-        dataUrl
+        dataUrl,
+        this.usesFacts(this.selectedCategory)
+          ? { fact: this.imageFact, plural: this.imagePlural }
+          : {}
       );
 
       if (result) {
         this.uploadMessage = `✅ Image "${this.imageName}" uploaded successfully!`;
         this.selectedFile = null;
         this.imageName = '';
+        this.imageFact = '';
+        this.imagePlural = false;
         this.selectedCategory = this.defaultCategory;
         if (this.fileInputRef) {
           this.fileInputRef.value = '';
@@ -428,6 +505,110 @@ export class CustomImages extends LitElement {
     } catch (error) {
       this.uploadMessage = `❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
     }
+  }
+
+  /** Family photos are named only: the games never describe real people. */
+  private usesFacts(category: string): boolean {
+    return category !== 'family';
+  }
+
+  /** Exactly what the learning games will say after a wrong pick of this picture. */
+  private speechPreview(name: string, fact: string, plural: boolean): string {
+    if (!name.trim()) return '';
+    return LearningEngine.describe({ id: 'preview', label: name.trim(), category: 'object', fact, plural });
+  }
+
+  private startEditing(img: CustomImage): void {
+    this.editingId = img.id;
+    this.editFact = img.fact ?? '';
+    this.editPlural = !!img.plural;
+  }
+
+  private saveEditing(): void {
+    if (!this.editingId) return;
+    this.imagesManager.updateDetails(this.editingId, { fact: this.editFact, plural: this.editPlural });
+    this.editingId = null;
+    this.loadImages();
+  }
+
+  private renderImageCard(img: CustomImage) {
+    const factsOn = this.usesFacts(img.category);
+    if (this.editingId === img.id) {
+      return html`
+        <div class="image-card">
+          <img src="${img.dataUrl}" alt="${img.name}" />
+          <div class="image-card-name">${img.name}</div>
+          <div class="fact-editor">
+            <input
+              type="text"
+              maxlength=${MAX_FACT_LENGTH}
+              placeholder="What is it for?"
+              aria-label="What is it for?"
+              .value=${this.editFact}
+              @input=${(e: Event) => { this.editFact = (e.target as HTMLInputElement).value; }}
+            />
+            <label class="check-row">
+              <input
+                type="checkbox"
+                .checked=${this.editPlural}
+                @change=${(e: Event) => { this.editPlural = (e.target as HTMLInputElement).checked; }}
+              />
+              More than one
+            </label>
+          </div>
+          <div class="image-card-actions">
+            <button class="edit-btn" @click=${this.saveEditing}>Save</button>
+            <button class="edit-btn" @click=${() => { this.editingId = null; }}>Cancel</button>
+          </div>
+        </div>
+      `;
+    }
+    return html`
+      <div class="image-card">
+        <img src="${img.dataUrl}" alt="${img.name}" />
+        <div class="image-card-name">${img.name}</div>
+        ${factsOn && img.fact
+          ? html`<div class="image-card-fact">“${LearningEngine.normalizeFact({ label: img.name, plural: img.plural }, img.fact)}”</div>`
+          : ''}
+        <div class="image-card-actions">
+          ${factsOn ? html`<button class="edit-btn" @click=${() => this.startEditing(img)}>✏️ Fact</button>` : ''}
+          <button class="delete-btn" @click="${() => this.deleteImage(img.id)}">
+            🗑️ Delete
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  private renderFactFields() {
+    if (!this.usesFacts(this.selectedCategory)) {
+      return html`<p class="hint">Family photos are named only. The games never describe real people.</p>`;
+    }
+    const preview = this.speechPreview(this.imageName, this.imageFact, this.imagePlural);
+    return html`
+      <div class="fact-block">
+        <label for="fact-input">What is it for? (optional)</label>
+        <p class="hint">Said once after a wrong answer in the learning games. Keep it to one short sentence.</p>
+        <input
+          id="fact-input"
+          type="text"
+          class="name-input"
+          maxlength=${MAX_FACT_LENGTH}
+          placeholder="e.g., for drinking"
+          .value=${this.imageFact}
+          @input=${(e: Event) => { this.imageFact = (e.target as HTMLInputElement).value; }}
+        />
+        <label class="check-row">
+          <input
+            type="checkbox"
+            .checked=${this.imagePlural}
+            @change=${(e: Event) => { this.imagePlural = (e.target as HTMLInputElement).checked; }}
+          />
+          The name means more than one (like "shoes")
+        </label>
+        ${preview ? html`<div class="speech-preview" data-testid="speech-preview">Cayden will hear: “${preview}”</div>` : ''}
+      </div>
+    `;
   }
 
   private deleteImage(id: string): void {
@@ -541,6 +722,8 @@ export class CustomImages extends LitElement {
                   }}"
                 />
 
+                ${this.renderFactFields()}
+
                 <div class="file-input-wrapper">
                   <button type="button" class="file-input-label" @click="${this.chooseImage}">
                     Choose Image
@@ -580,6 +763,8 @@ export class CustomImages extends LitElement {
                     @click="${() => {
                       this.selectedFile = null;
                       this.imageName = '';
+                      this.imageFact = '';
+                      this.imagePlural = false;
                       if (this.fileInputRef) this.fileInputRef.value = '';
                     }}"
                   >
@@ -611,20 +796,7 @@ export class CustomImages extends LitElement {
                   ? html`<div class="empty-message">No images in this category yet</div>`
                   : html`
                       <div class="images-grid">
-                        ${categoryImages.map(
-                          img =>
-                            html`
-                              <div class="image-card">
-                                <img src="${img.dataUrl}" alt="${img.name}" />
-                                <div class="image-card-name">${img.name}</div>
-                                <div class="image-card-actions">
-                                  <button class="delete-btn" @click="${() => this.deleteImage(img.id)}">
-                                    🗑️ Delete
-                                  </button>
-                                </div>
-                              </div>
-                            `
-                        )}
+                        ${categoryImages.map((img) => this.renderImageCard(img))}
                       </div>
                     `}
               </div>

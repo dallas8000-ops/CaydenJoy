@@ -7,6 +7,7 @@ import { PremiumManager } from '../utils/premium-manager.js';
 import { LearningEngine, type LearningCard, type Trial, type TrialResult } from '../utils/learning-engine.js';
 import { LearningSettingsManager, type LearningSettings } from '../utils/learning-settings.js';
 import { TrialStore } from '../utils/trial-store.js';
+import { objectFact } from '../utils/card-attributes.js';
 import { resolveRouterPath } from '../router';
 import { photo } from '../utils/photos';
 
@@ -68,13 +69,13 @@ export class AppFamilyPuzzle extends LitElement {
   ];
 
   private readonly objectCards: PuzzleCard[] = [
-    { id: 'cup', label: 'Cup', imageUrl: photo('photo-1513558161293-cdaf765ed2fd'), fact: 'A cup is for drinking.' },
-    { id: 'shoes', label: 'Shoes', imageUrl: photo('photo-1542291026-7eec264c27ff'), fact: 'Shoes go on your feet.', plural: true },
-    { id: 'toothbrush', label: 'Toothbrush', imageUrl: photo('photo-1609840114035-3c981b782dfe'), fact: 'A toothbrush cleans your teeth.' },
-    { id: 'ball', label: 'Ball', imageUrl: photo('photo-1518611012118-696072aa579a'), fact: 'A ball is for playing.' },
-    { id: 'headphones', label: 'Headphones', imageUrl: photo('photo-1505740420928-5e560c06d30e'), fact: 'Headphones go on your ears.', plural: true },
-    { id: 'backpack', label: 'Backpack', imageUrl: photo('photo-1553062407-98eeb64c6a62'), fact: 'A backpack carries your things.' },
-  ];
+    { id: 'cup', label: 'Cup', imageUrl: photo('photo-1513558161293-cdaf765ed2fd') },
+    { id: 'shoes', label: 'Shoes', imageUrl: photo('photo-1542291026-7eec264c27ff') },
+    { id: 'toothbrush', label: 'Toothbrush', imageUrl: photo('photo-1609840114035-3c981b782dfe') },
+    { id: 'ball', label: 'Ball', imageUrl: photo('photo-1518611012118-696072aa579a') },
+    { id: 'headphones', label: 'Headphones', imageUrl: photo('photo-1505740420928-5e560c06d30e') },
+    { id: 'backpack', label: 'Backpack', imageUrl: photo('photo-1553062407-98eeb64c6a62') },
+  ].map((card) => ({ ...card, ...objectFact(card.id) }));
 
   static styles = css`
     :host {
@@ -458,7 +459,14 @@ export class AppFamilyPuzzle extends LitElement {
       .map((img) => ({ id: `custom-${img.id}`, label: img.name, imageUrl: img.dataUrl, isCustom: true }));
     this.customObjectCards = this.customImagesManager
       .getImagesByCategory(this.OBJECTS_CATEGORY)
-      .map((img) => ({ id: `custom-${img.id}`, label: img.name, imageUrl: img.dataUrl, isCustom: true }));
+      .map((img) => ({
+        id: `custom-${img.id}`,
+        label: img.name,
+        imageUrl: img.dataUrl,
+        isCustom: true,
+        fact: img.fact,
+        plural: img.plural,
+      }));
     this.engines.family.setCards(this.cardsFor('family').map((c) => this.toLearningCard(c, 'family')));
     this.engines.objects.setCards(this.cardsFor('objects').map((c) => this.toLearningCard(c, 'objects')));
   }
@@ -476,7 +484,7 @@ export class AppFamilyPuzzle extends LitElement {
       // Family mode includes pets ("Dog"); they are named like people, never described.
       category: mode === 'family' ? 'person' : 'object',
       fact: mode === 'objects' ? card.fact : undefined,
-      plural: card.plural,
+      plural: mode === 'objects' ? card.plural : undefined,
     };
   }
 

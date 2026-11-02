@@ -73,6 +73,8 @@ export interface LearningEngineOptions {
 }
 
 const MIN_FIELD = 2;
+/** Longest fact the app will speak; keeps explanations to one short sentence. */
+export const MAX_FACT_LENGTH = 120;
 const MAX_FIELD = 6;
 /** Highest level an item may START a trial at; level 3 (model) only follows errors. */
 const MAX_START_LEVEL: PromptLevel = 2;
@@ -243,12 +245,38 @@ export class LearningEngine {
    * People are named only; the app never states facts about real family members.
    */
   static explain(picked: LearningCard, target: LearningCard): string {
-    const parts = [`${LearningEngine.thatIs(picked)}.`];
-    if (picked.category !== 'person' && picked.fact) {
-      parts.push(LearningEngine.sentence(picked.fact));
-    }
-    parts.push(`Here ${target.plural ? 'are' : 'is'} ${LearningEngine.targetName(target)}.`);
+    return `${LearningEngine.describe(picked)} Here ${target.plural ? 'are' : 'is'} ${LearningEngine.targetName(target)}.`;
+  }
+
+  /**
+   * What the app says about one card: "That's a cup. A cup is for drinking."
+   * Also used for the live preview on the photo-upload form.
+   */
+  static describe(card: LearningCard): string {
+    const parts = [`${LearningEngine.thatIs(card)}.`];
+    const fact = card.category === 'person' ? '' : LearningEngine.normalizeFact(card, card.fact ?? '');
+    if (fact) parts.push(fact);
     return parts.join(' ');
+  }
+
+  /**
+   * Turn a caregiver's short answer into one clean sentence:
+   *   "for drinking"   -> "A cup is for drinking."
+   *   "to carry books" -> "A backpack is to carry books."
+   *   "goes on feet"   -> "Goes on feet."
+   * Full sentences are kept as written (first letter capitalised, end mark added).
+   */
+  static normalizeFact(card: Pick<LearningCard, 'label' | 'plural'>, raw: string): string {
+    let t = raw.replace(/\s+/g, ' ').trim().slice(0, MAX_FACT_LENGTH);
+    if (!t) return '';
+    if (/^(for|to|used for|used to)\b/i.test(t)) {
+      const name = LearningEngine.lower(card.label);
+      const subject = card.plural
+        ? LearningEngine.capital(name)
+        : `${/^[aeiou]/i.test(name) ? 'An' : 'A'} ${name}`;
+      t = `${subject} ${card.plural ? 'are' : 'is'} ${t.charAt(0).toLowerCase()}${t.slice(1)}`;
+    }
+    return LearningEngine.sentence(LearningEngine.capital(t));
   }
 
   /** Spoken prompt for a trial: "Find Mom." / "Find the cup." */
