@@ -1,12 +1,18 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { ProgressManager, ProgressSummary } from '../utils/progress-manager.js';
+import { TrialStore, type TrialEvent } from '../utils/trial-store.js';
+import { buildReport, trialsToCsv, reportToHtml, type LearningReport } from '../utils/learning-report.js';
 
 @customElement('app-progress')
 export class AppProgress extends LitElement {
   @state() private summary: ProgressSummary = ProgressManager.getInstance().getSummary();
+  @state() private report: LearningReport = buildReport([]);
+  @state() private trials: TrialEvent[] = [];
+  @state() private loadingLearning = true;
 
   private progressManager = ProgressManager.getInstance();
+  private trialStore = TrialStore.getInstance();
 
   static styles = css`
     :host {
@@ -150,6 +156,38 @@ export class AppProgress extends LitElement {
       color: #ffffff;
     }
 
+    .learning { margin-bottom: 1.5rem; }
+    .section-title { margin: 1.5rem 0 0.4rem; font-size: 1.5rem; }
+    .game-panel { margin-bottom: 1rem; }
+    .game-line { margin: -0.4rem 0 0.75rem; color: #596779; font-weight: 700; }
+    .item-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #e8edf3;
+      font-weight: 800;
+    }
+    .item-row:last-child { border-bottom: 0; }
+    .item-meta { color: #596779; font-size: 0.9rem; font-weight: 700; }
+    .chip { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.85rem; font-weight: 900; }
+    .chip.mastered { background: #dff3ea; color: #1f6b52; }
+    .chip.learning { background: #fdf0d5; color: #8a5a00; }
+    .confusion { padding: 0.55rem 0; border-bottom: 1px solid #e8edf3; font-weight: 700; color: #334155; }
+    .confusion:last-child { border-bottom: 0; }
+    .weeks { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.5rem; align-items: end; height: 170px; }
+    .week { display: grid; grid-template-rows: 1fr auto; height: 100%; text-align: center; }
+    .bar { display: flex; flex-direction: column-reverse; justify-self: center; width: 70%; max-width: 46px; height: 100%; }
+    .seg-own { background: #2e8f74; }
+    .seg-help { background: #f0b429; }
+    .seg-wrong { background: #b8c2cc; }
+    .week-label { margin-top: 0.35rem; color: #596779; font-size: 0.75rem; font-weight: 800; }
+    .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.6rem; color: #596779; font-size: 0.85rem; font-weight: 800; }
+    .swatch { display: inline-block; width: 0.8rem; height: 0.8rem; margin-right: 0.3rem; border-radius: 0.2rem; vertical-align: -1px; }
+    .rule { margin-top: 0.75rem; color: #657386; font-size: 0.85rem; }
+    .primary { background: #2e8f74; color: #ffffff; }
+
     @media (max-width: 800px) {
       .stats,
       .grid {
@@ -165,6 +203,125 @@ export class AppProgress extends LitElement {
 
   private refresh(): void {
     this.summary = this.progressManager.getSummary();
+    void this.loadLearning();
+  }
+
+  private async loadLearning(): Promise<void> {
+    this.trials = await this.trialStore.getAll();
+    this.report = buildReport(this.trials);
+    this.loadingLearning = false;
+  }
+
+  private exportCsv(): void {
+    const blob = new Blob([trialsToCsv(this.trials)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `caydenjoy-learning-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /** Prints only the report (not the app around it). Choose "Save as PDF" in the print dialog for a file. */
+  private printReport(): void {
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+    frame.srcdoc = reportToHtml(buildReport(this.trials));
+    frame.onload = () => {
+      frame.contentWindow?.focus();
+      frame.contentWindow?.print();
+      setTimeout(() => frame.remove(), 60000);
+    };
+    document.body.appendChild(frame);
+  }
+
+  private async clearLearning(): Promise<void> {
+    if (confirm('Clear all learning game results? Export them first if his teacher or therapist needs them. This cannot be undone.')) {
+      await this.trialStore.clear();
+      await this.loadLearning();
+    }
+  }
+
+  private pct(n: number): string {
+    return `${Math.round(n * 100)}%`;
+  }
+
+  private weekLabel(start: number): string {
+    return new Date(start).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  private renderWeeks() {
+    const max = Math.max(1, ...this.report.weeks.map((w) => w.independent + w.prompted + w.errors));
+    const h = (n: number) => `height:${(n / max) * 100}%`;
+    return html`
+      <div class="weeks" role="img" aria-label="Answers per week for the last 8 weeks">
+        ${this.report.weeks.map((w) => html`
+          <div class="week" title="${w.independent} on his own, ${w.prompted} with help, ${w.errors} wrong">
+            <div class="bar">
+              <div class="seg-own" style=${h(w.independent)}></div>
+              <div class="seg-help" style=${h(w.prompted)}></div>
+              <div class="seg-wrong" style=${h(w.errors)}></div>
+            </div>
+            <div class="week-label">${this.weekLabel(w.start)}</div>
+          </div>
+        `)}
+      </div>
+      <div class="legend">
+        <span><span class="swatch seg-own"></span>Right on his own</span>
+        <span><span class="swatch seg-help"></span>Right with help</span>
+        <span><span class="swatch seg-wrong"></span>Wrong pick</span>
+      </div>
+    `;
+  }
+
+  private renderLearning() {
+    const r = this.report;
+    const t = r.totals;
+    if (this.loadingLearning) return html`<div class="empty">Loading learning results...</div>`;
+    if (r.games.length === 0) {
+      return html`<div class="empty">No learning game answers yet. Play Picture Puzzle, or the Play mode on Colors, Numbers or Places.</div>`;
+    }
+    return html`
+      <section class="stats">
+        <div class="stat"><div class="stat-value">${t.questions}</div><div class="stat-label">Questions answered</div></div>
+        <div class="stat"><div class="stat-value">${t.questions ? this.pct(t.independent / t.questions) : '0%'}</div><div class="stat-label">Right on his own</div></div>
+        <div class="stat"><div class="stat-value">${t.mastered}</div><div class="stat-label">Items mastered</div></div>
+        <div class="stat"><div class="stat-value">${t.errors}</div><div class="stat-label">Wrong picks</div></div>
+      </section>
+
+      ${r.games.map((g) => html`
+        <div class="panel game-panel" data-testid="game-report">
+          <h2>${g.title}</h2>
+          <p class="game-line">${g.mastered} of ${g.items.length} mastered · ${g.questions} questions · ${g.prompted} needed help</p>
+          ${g.items.map((i) => html`
+            <div class="item-row">
+              <span>${i.label}</span>
+              <span class="item-meta">${this.pct(i.recentIndependentRate)} on his own (last ${i.recentQuestions})</span>
+              <span class="chip ${i.status}">${i.status === 'mastered' ? 'Mastered' : 'Learning'}</span>
+            </div>
+          `)}
+        </div>
+      `)}
+
+      <section class="grid">
+        <div class="panel">
+          <h2>Often mixed up</h2>
+          ${r.confusions.length === 0
+            ? html`<div class="empty">Nothing mixed up more than once yet.</div>`
+            : r.confusions.map((c) => html`<div class="confusion">Asked for <b>${c.askedFor}</b>, picked <b>${c.picked}</b> · ${c.count} times</div>`)}
+        </div>
+        <div class="panel">
+          <h2>Week by week</h2>
+          ${this.renderWeeks()}
+        </div>
+      </section>
+
+      <p class="rule">
+        Mastered = right on his own in at least 80% of his last 10 questions on that item, on at least 2 different days,
+        with at least 5 questions answered.
+      </p>
+    `;
   }
 
   private clearProgress(): void {
@@ -183,8 +340,20 @@ export class AppProgress extends LitElement {
       <div class="container">
         <h1>Progress Dashboard</h1>
         <p class="subtitle">
-          Local caregiver view of recent communication and activity use. This stays on the device and is not sent anywhere.
+          Local caregiver view of learning and communication. Everything stays on this device and is not sent anywhere.
         </p>
+
+        <div class="learning" data-testid="learning-section">
+          <h2 class="section-title">Learning games</h2>
+          ${this.renderLearning()}
+          <div class="actions">
+            <button class="primary" @click=${this.printReport} ?disabled=${this.trials.length === 0}>Print report / Save as PDF</button>
+            <button @click=${this.exportCsv} ?disabled=${this.trials.length === 0}>Export CSV</button>
+            <button class="danger" @click=${this.clearLearning} ?disabled=${this.trials.length === 0}>Clear learning results</button>
+          </div>
+        </div>
+
+        <h2 class="section-title">Communication and activity log</h2>
 
         <section class="stats">
           <div class="stat">
