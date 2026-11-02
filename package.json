@@ -28,6 +28,8 @@
     "@capacitor/android": "^7.0.0",
     "@capacitor/cli": "^7.0.0",
     "@capacitor/core": "^7.0.0",
+    "@capacitor/filesystem": "^7.1.9",
+    "@capacitor/share": "^7.0.4",
     "@capgo/native-purchases": "7.19.3",
     "@shoelace-style/shoelace": "^2.18.0",
     "@thepassle/app-tools": "^0.9.12",
