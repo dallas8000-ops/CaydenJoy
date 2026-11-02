@@ -12,6 +12,7 @@ import { resolveRouterPath } from '../router.js';
 import { styles } from '../styles/shared-styles.js';
 import '../components/header.js';
 import '../components/footer.js';
+import '../components/family-voices.js';
 
 @customElement('app-settings')
 export class AppSettings extends LitElement {
@@ -464,10 +465,12 @@ export class AppSettings extends LitElement {
                   <sl-option value="voice">Spoken praise only</sl-option>
                   <sl-option value="sound">Praise and a happy sound</sl-option>
                   <sl-option value="animation">Praise and a small animation</sl-option>
+                  <sl-option value="family">Family voice, then praise</sl-option>
                 </sl-select>
               </div>
               <p class="setting-description">
                 Wrong answers never get a buzzer or a red mark, only a calm hint.
+                "Family voice" plays one of the praise clips recorded below; until one is recorded, it uses spoken praise.
               </p>
 
               <div class="setting-item">
@@ -479,6 +482,21 @@ export class AppSettings extends LitElement {
               </div>
               <p class="setting-description">
                 After a wrong pick, says one short reason, for example: "That's a cup. A cup is for drinking. Here is the ball."
+              </p>
+            </div>
+          </sl-card>
+
+          <!-- Family Voices -->
+          <sl-card id="family-voices">
+            <div slot="header">
+              <h2>🎙️ Family Voices</h2>
+            </div>
+            <family-voices></family-voices>
+            <div class="setting-group" style="padding-top: 0;">
+              <p class="setting-description">
+                <strong>Modeling:</strong> hold the 👀 Model button on the word bar to show Cayden words while you talk.
+                Your taps are spoken and lit up but are not added to his sentence. Tap 👀 Stop to finish; it also turns
+                off by itself after 5 minutes without use.
               </p>
             </div>
           </sl-card>

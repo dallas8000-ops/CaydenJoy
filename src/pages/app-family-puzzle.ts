@@ -6,6 +6,7 @@ import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { PremiumManager } from '../utils/premium-manager.js';
 import { LearningEngine, type LearningCard, type Trial, type TrialResult } from '../utils/learning-engine.js';
 import { LearningSettingsManager, type LearningSettings } from '../utils/learning-settings.js';
+import { VoiceClipStore } from '../utils/voice-clips.js';
 import { TrialStore } from '../utils/trial-store.js';
 import { objectFact } from '../utils/card-attributes.js';
 import { resolveRouterPath } from '../router';
@@ -52,8 +53,11 @@ export class AppFamilyPuzzle extends LitElement {
   private trialStore = TrialStore.getInstance();
   private settings: LearningSettings = this.learningSettings.get();
   private engines: Record<PuzzleMode, LearningEngine> = this.createEngines();
+  private voiceClips = VoiceClipStore.getInstance();
   private busy = false;
   private timers: number[] = [];
+  /** Bumped on every new trial / disconnect so a late-finishing praise clip can't act on a stale trial. */
+  private generation = 0;
   private unsubscribeSettings?: () => void;
 
   private readonly FAMILY_CATEGORY = 'family';
@@ -441,6 +445,7 @@ export class AppFamilyPuzzle extends LitElement {
 
   disconnectedCallback() {
     super.disconnectedCallback();
+    this.generation += 1;
     this.clearTimers();
     this.unsubscribeSettings?.();
   }
@@ -519,6 +524,7 @@ export class AppFamilyPuzzle extends LitElement {
   }
 
   private startTrial(): void {
+    this.generation += 1;
     this.clearTimers();
     this.busy = false;
     this.feedback = null;
@@ -559,9 +565,9 @@ export class AppFamilyPuzzle extends LitElement {
       else this.promptedCount += 1;
 
       const milestone = outcome.result === 'independent' && outcome.streak > 0 && outcome.streak % 5 === 0;
-      this.speak(milestone ? `${LearningEngine.praise(target, outcome.result)} Five in a row!` : LearningEngine.praise(target, outcome.result));
+      const praise = LearningEngine.praise(target, outcome.result);
       this.reward(milestone);
-      this.later(() => this.startTrial(), milestone ? CORRECT_PAUSE + 800 : CORRECT_PAUSE);
+      this.praiseThenNext(milestone ? `${praise} Five in a row!` : praise, milestone ? CORRECT_PAUSE + 800 : CORRECT_PAUSE);
       return;
     }
 
@@ -584,6 +590,18 @@ export class AppFamilyPuzzle extends LitElement {
       this.feedback = null;
       this.busy = false;
     }, WRONG_PAUSE);
+  }
+
+  /** Spoken praise then the next trial; with the "family voice" reward a recorded family clip plays first. */
+  private praiseThenNext(text: string, pause: number): void {
+    const generation = this.generation;
+    const go = () => {
+      if (generation !== this.generation || !this.isConnected) return;
+      this.speak(text);
+      this.later(() => this.startTrial(), pause);
+    };
+    if (this.settings.rewardStyle === 'family') void this.voiceClips.playPraise().then(go);
+    else go();
   }
 
   private reward(milestone: boolean): void {

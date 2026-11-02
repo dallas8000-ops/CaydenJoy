@@ -1,8 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { AccessibilityManager } from '../utils/accessibility-manager.js';
-import { SentenceBuilder, type SentenceWord } from '../utils/sentence-builder.js';
+import { SentenceBuilder, type SentenceWord, type ModelingState } from '../utils/sentence-builder.js';
 import { CORE_WORDS, type CoreWord } from '../utils/core-words.js';
+import { speakWord } from '../utils/voice-clips.js';
+
+/** How long a caregiver holds the Model button to turn modeling on (a quick tap by Cayden does nothing). */
+const MODEL_HOLD_MS = 700;
+const MODELED_GLOW_MS = 1400;
 
 /**
  * Persistent, fixed-position core-vocabulary bar mounted once in app-index.ts
@@ -14,10 +19,18 @@ import { CORE_WORDS, type CoreWord } from '../utils/core-words.js';
 @customElement('core-word-bar')
 export class CoreWordBar extends LitElement {
   @state() sentence: SentenceWord[] = [];
+  @state() modeling: ModelingState = { on: false, modeled: [] };
+  @state() private modeledWordId = '';
+  @state() private holdHint = false;
 
   private accessibilityManager = AccessibilityManager.getInstance();
   private sentenceBuilder = SentenceBuilder.getInstance();
   private unsubscribe: (() => void) | null = null;
+  private unsubscribeModeling: (() => void) | null = null;
+  private holdTimer = 0;
+  private glowTimer = 0;
+  private hintTimer = 0;
+  private holdFired = false;
 
   static override readonly styles = css`
     :host {
@@ -139,6 +152,54 @@ export class CoreWordBar extends LitElement {
     .cat-social { background: #ffd6e8; border-color: #ea7fb0; }
     .cat-negation { background: #ffd0d0; border-color: #e06060; }
 
+    .model-btn {
+      background: #eef0f4;
+      color: #243041;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .model-btn.on { background: #f2a516; color: #2b1d00; }
+
+    .sentence-strip.modeling { background: #fff4dc; border-bottom-color: #f2c66d; }
+    .modeling-label {
+      color: #7a4b00;
+      font-weight: 900;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .modeled-chip {
+      background: #fff;
+      color: #7a4b00;
+      border: 2px dashed #e0a030;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .hold-hint {
+      color: #7a4b00;
+      font-size: 0.8rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .core-word-btn.modeled {
+      outline: 4px solid #f2a516;
+      outline-offset: 1px;
+      animation: model-pulse 0.7s ease-in-out 2;
+    }
+    @keyframes model-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    :host-context(.prefers-reduced-motion) .core-word-btn.modeled { animation: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .core-word-btn.modeled { animation: none; }
+    }
+
     @media (max-width: 900px) {
       :host { top: 76px; }
     }
@@ -155,16 +216,72 @@ export class CoreWordBar extends LitElement {
     this.unsubscribe = this.sentenceBuilder.subscribe((words) => {
       this.sentence = words;
     });
+    this.unsubscribeModeling = this.sentenceBuilder.subscribeModeling((state) => {
+      this.modeling = state;
+    });
   }
 
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.unsubscribe?.();
+    this.unsubscribeModeling?.();
+    window.clearTimeout(this.holdTimer);
+    window.clearTimeout(this.glowTimer);
+    window.clearTimeout(this.hintTimer);
   }
 
   private tapCoreWord(word: CoreWord): void {
-    this.accessibilityManager.speakNow(word.label, 0.9);
-    this.sentenceBuilder.addWord({ label: word.label });
+    // A family recording of this word plays when there is one; otherwise the device voice.
+    speakWord(word.label);
+    const added = this.sentenceBuilder.addWord({ label: word.label });
+    if (!added && this.modeling.on) {
+      // Modeling: light up the button the caregiver tapped so he sees where the word lives.
+      this.modeledWordId = word.id;
+      window.clearTimeout(this.glowTimer);
+      this.glowTimer = window.setTimeout(() => { this.modeledWordId = ''; }, MODELED_GLOW_MS);
+    }
+  }
+
+  // Modeling is turned ON by holding the button (so a quick tap from Cayden does nothing)
+  // and turned OFF by a single tap.
+  private onModelDown(e: PointerEvent): void {
+    if (e.button !== undefined && e.button > 0) return;
+    this.holdFired = false;
+    window.clearTimeout(this.holdTimer);
+    if (this.modeling.on) return;
+    this.holdTimer = window.setTimeout(() => {
+      this.holdFired = true;
+      this.holdHint = false;
+      this.sentenceBuilder.setModeling(true);
+    }, MODEL_HOLD_MS);
+  }
+
+  private onModelUp(): void {
+    window.clearTimeout(this.holdTimer);
+  }
+
+  private onModelClick(): void {
+    if (this.holdFired) {
+      this.holdFired = false;
+      return;
+    }
+    if (this.modeling.on) {
+      this.sentenceBuilder.setModeling(false);
+      return;
+    }
+    // Short tap while off: show how to turn it on, briefly.
+    this.holdHint = true;
+    window.clearTimeout(this.hintTimer);
+    this.hintTimer = window.setTimeout(() => { this.holdHint = false; }, 2500);
+  }
+
+  private onModelKey(e: KeyboardEvent): void {
+    // Keyboard and switch users: Enter/Space toggles directly.
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this.holdFired = false;
+      this.sentenceBuilder.setModeling(!this.modeling.on);
+    }
   }
 
   private speakSentence(): void {
@@ -183,14 +300,36 @@ export class CoreWordBar extends LitElement {
 
   render() {
     const hasWords = this.sentence.length > 0;
+    const modeling = this.modeling.on;
     return html`
-      <div class="sentence-strip">
+      <div class="sentence-strip ${modeling ? 'modeling' : ''}" data-testid="sentence-strip">
         <div class="sentence-words">
-          ${hasWords
-            ? this.sentence.map((word) => html`<span class="sentence-chip">${word.label}</span>`)
-            : html`<span class="sentence-placeholder">Tap words below to build a sentence</span>`}
+          ${modeling
+            ? html`
+                <span class="modeling-label" data-testid="modeling-label">👀 Modeling, not added:</span>
+                ${this.modeling.modeled.map((w) => html`<span class="modeled-chip" data-testid="modeled-chip">${w}</span>`)}
+              `
+            : this.holdHint
+              ? html`<span class="hold-hint" role="status" data-testid="hold-hint">Caregivers: hold "Model" to show words without adding them</span>`
+              : hasWords
+                ? this.sentence.map((word) => html`<span class="sentence-chip" data-testid="sentence-chip">${word.label}</span>`)
+                : html`<span class="sentence-placeholder">Tap words below to build a sentence</span>`}
         </div>
         <div class="sentence-controls">
+          <button
+            class="ctrl-btn model-btn ${modeling ? 'on' : ''}"
+            data-testid="model-toggle"
+            aria-pressed=${modeling ? 'true' : 'false'}
+            aria-label=${modeling ? 'Modeling on. Tap to stop modeling' : 'Model words. Hold to start'}
+            title=${modeling ? 'Tap to stop modeling' : 'Hold to start modeling'}
+            @pointerdown=${this.onModelDown}
+            @pointerup=${this.onModelUp}
+            @pointerleave=${this.onModelUp}
+            @pointercancel=${this.onModelUp}
+            @contextmenu=${(e: Event) => e.preventDefault()}
+            @click=${this.onModelClick}
+            @keydown=${this.onModelKey}
+          >${modeling ? '👀 Stop' : '👀 Model'}</button>
           <button class="ctrl-btn back-btn" @click=${this.removeLast} ?disabled=${!hasWords} aria-label="Remove last word">⌫</button>
           <button class="ctrl-btn clear-btn" @click=${this.clearSentence} ?disabled=${!hasWords} aria-label="Clear sentence">✕</button>
           <button class="ctrl-btn speak-btn" @click=${this.speakSentence} ?disabled=${!hasWords} aria-label="Speak sentence">🔊 Speak</button>
@@ -198,7 +337,12 @@ export class CoreWordBar extends LitElement {
       </div>
       <div class="core-words">
         ${CORE_WORDS.map((word) => html`
-          <button class="core-word-btn cat-${word.category}" @click=${() => this.tapCoreWord(word)}>
+          <button
+            class="core-word-btn cat-${word.category} ${this.modeledWordId === word.id ? 'modeled' : ''}"
+            data-testid="core-word"
+            data-word-id=${word.id}
+            @click=${() => this.tapCoreWord(word)}
+          >
             ${word.iconUrl ? html`<img src=${word.iconUrl} alt="" />` : ''}
             <span>${word.label}</span>
           </button>

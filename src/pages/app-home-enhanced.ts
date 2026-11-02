@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
-import { AccessibilityManager } from '../utils/accessibility-manager.js';
 import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
+import { speakWord } from '../utils/voice-clips.js';
 import { resolveRouterPath } from '../router';
 
 interface QuickButton {
@@ -20,7 +20,6 @@ interface QuickPhoto {
 
 @customElement('app-home-enhanced')
 export class AppHomeEnhanced extends LitElement {
-  private accessibilityManager = AccessibilityManager.getInstance();
   private customImagesManager = CustomImagesManager.getInstance();
   private sentenceBuilder = SentenceBuilder.getInstance();
   private readonly CUSTOM_CATEGORY = 'quick';
@@ -209,12 +208,12 @@ export class AppHomeEnhanced extends LitElement {
   }
 
   private handleButtonClick(button: QuickButton) {
-    this.accessibilityManager.speakNow(button.label, 1);
+    speakWord(button.label, button.label, 1);
     this.sentenceBuilder.addWord({ label: button.label });
   }
 
   private handlePhotoClick(photo: QuickPhoto) {
-    this.accessibilityManager.speakNow(photo.label, 1);
+    speakWord(photo.label, photo.label, 1);
     this.sentenceBuilder.addWord({ label: photo.label, imageUrl: photo.imageUrl });
   }
 
