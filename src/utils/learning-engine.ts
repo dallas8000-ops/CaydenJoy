@@ -32,7 +32,11 @@ export interface LearningCard {
   fact?: string;
   /** Plural nouns read "Those are shoes" instead of "That's a shoes". */
   plural?: boolean;
+  /** Numbers game: how many dots the card shows; enables the count-along explanation. */
+  count?: number;
 }
+
+export const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 
 export type TrialResult = 'independent' | 'prompted' | 'error';
 export type PromptLevel = 0 | 1 | 2 | 3;
@@ -245,7 +249,16 @@ export class LearningEngine {
    * People are named only; the app never states facts about real family members.
    */
   static explain(picked: LearningCard, target: LearningCard): string {
+    if (target.category === 'number' && target.count) {
+      return `${LearningEngine.describe(picked)} ${LearningEngine.countAlong(target)}`;
+    }
     return `${LearningEngine.describe(picked)} Here ${target.plural ? 'are' : 'is'} ${LearningEngine.targetName(target)}.`;
+  }
+
+  /** Numbers game: "Let's count three: one, two, three." */
+  static countAlong(target: LearningCard): string {
+    const n = Math.max(1, Math.min(10, Math.round(target.count ?? 0)));
+    return `Let's count ${LearningEngine.lower(target.label)}: ${NUMBER_WORDS.slice(1, n + 1).join(', ')}.`;
   }
 
   /**
@@ -266,14 +279,17 @@ export class LearningEngine {
    *   "goes on feet"   -> "Goes on feet."
    * Full sentences are kept as written (first letter capitalised, end mark added).
    */
-  static normalizeFact(card: Pick<LearningCard, 'label' | 'plural'>, raw: string): string {
+  static normalizeFact(
+    card: Pick<LearningCard, 'label' | 'plural'> & { category?: CardCategory },
+    raw: string,
+  ): string {
     let t = raw.replace(/\s+/g, ' ').trim().slice(0, MAX_FACT_LENGTH);
     if (!t) return '';
     if (/^(for|to|used for|used to)\b/i.test(t)) {
-      const name = LearningEngine.lower(card.label);
-      const subject = card.plural
-        ? LearningEngine.capital(name)
-        : `${/^[aeiou]/i.test(name) ? 'An' : 'A'} ${name}`;
+      const full: LearningCard = { id: '', label: card.label, plural: card.plural, category: card.category ?? 'object' };
+      const subject = LearningEngine.capital(
+        card.plural ? LearningEngine.pluralName(full) : LearningEngine.nounPhrase(full, false),
+      );
       t = `${subject} ${card.plural ? 'are' : 'is'} ${t.charAt(0).toLowerCase()}${t.slice(1)}`;
     }
     return LearningEngine.sentence(LearningEngine.capital(t));
@@ -286,7 +302,9 @@ export class LearningEngine {
 
   /** Praise naming the item, so praise also teaches the word. */
   static praise(target: LearningCard, result: TrialResult): string {
-    const name = target.category === 'person' ? target.label : LearningEngine.lower(target.label);
+    const name = target.category === 'person' || LearningEngine.isPossessive(target.label)
+      ? target.label.trim()
+      : LearningEngine.lower(target.label);
     return result === 'independent' ? `Yes! ${LearningEngine.capital(name)}.` : `That's it. ${LearningEngine.capital(name)}.`;
   }
 
@@ -297,14 +315,39 @@ export class LearningEngine {
   }
 
   private static thatIs(card: LearningCard): string {
-    if (card.category === 'person') return `That's ${card.label}`;
-    const name = LearningEngine.lower(card.label);
-    if (card.plural) return `Those are ${name}`;
-    return `That's ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}`;
+    if (card.plural && card.category !== 'person') return `Those are ${LearningEngine.pluralName(card)}`;
+    return `That's ${LearningEngine.nounPhrase(card, false)}`;
   }
 
   private static targetName(card: LearningCard): string {
-    return card.category === 'person' ? card.label : `the ${LearningEngine.lower(card.label)}`;
+    if (card.plural && card.category !== 'person') {
+      return LearningEngine.isPossessive(card.label) ? card.label.trim() : `the ${LearningEngine.lower(card.label)}`;
+    }
+    return LearningEngine.nounPhrase(card, true);
+  }
+
+  /**
+   * How a card is named in speech:
+   *   person "Mom" -> "Mom" · color "Red" -> "red" · number "Three" -> "three"
+   *   place "Park" -> "the park" · object "Cup" -> "a cup" / "the cup"
+   *   possessive uploads keep their own wording: "Grandma's house"
+   */
+  private static nounPhrase(card: LearningCard, definite: boolean): string {
+    const raw = card.label.trim();
+    if (card.category === 'person') return raw;
+    if (card.category === 'color' || card.category === 'number') return LearningEngine.lower(raw);
+    if (LearningEngine.isPossessive(raw)) return raw;
+    const name = LearningEngine.lower(raw);
+    if (definite || card.category === 'place') return `the ${name}`;
+    return `${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}`;
+  }
+
+  private static pluralName(card: LearningCard): string {
+    return LearningEngine.isPossessive(card.label) ? card.label.trim() : LearningEngine.lower(card.label);
+  }
+
+  private static isPossessive(label: string): boolean {
+    return /\w['’]s\b/i.test(label);
   }
 
   private static lower(s: string): string {

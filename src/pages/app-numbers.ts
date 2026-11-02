@@ -7,6 +7,12 @@ import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
 import { photo } from '../utils/photos';
+import '../components/learning-game.js';
+import type { GameCard } from '../components/learning-game.js';
+import { NUMBER_WORDS } from '../utils/learning-engine.js';
+
+/** Play mode starts with 1-5: dot groups a young learner can count at a glance. */
+const PLAY_MAX = 5;
 
 interface NumberItem {
   id: string;
@@ -62,6 +68,8 @@ export class AppNumbers extends LitElement {
   @state() showNewTabModal = false;
   @state() newTabName = '';
   @state() customNumbers: NumberItem[] = [];
+  @state() mode: 'explore' | 'play' = 'explore';
+  private playCards: GameCard[] = [];
 
   private premiumManager = PremiumManager.getInstance();
   private accessibilityManager = AccessibilityManager.getInstance();
@@ -102,6 +110,9 @@ export class AppNumbers extends LitElement {
     .modal-input { width: 100%; box-sizing: border-box; margin-bottom: 1rem; padding: 0.85rem; border: 2px solid #c9d4e1; border-radius: 0.4rem; font-size: 1rem; }
     .modal-buttons { display: flex; gap: 0.75rem; justify-content: flex-end; }
     .modal-btn-secondary { border: 0; background: #e8edf3; color: #243041; }
+    .mode-switch { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0 0 1rem; padding: 0.35rem; background: #e8edf3; border-radius: 0.5rem; }
+    .mode-switch button { min-height: 48px; min-width: 120px; border: 0; border-radius: 0.4rem; background: transparent; color: #243041; font-size: 1rem; font-weight: 900; cursor: pointer; }
+    .mode-switch button.active { background: #243041; color: #fff; }
     @media (max-width: 640px) { :host { padding: 0.8rem; } h1 { font-size: 1.55rem; } .number-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; } .number-button { grid-template-rows: 112px auto; min-height: 198px; } .selected-card { grid-template-columns: 1fr; } .selected-card img { width: 100%; height: 160px; } }
   `;
 
@@ -183,6 +194,18 @@ export class AppNumbers extends LitElement {
     this.saveTabs();
   }
 
+  private setMode(mode: 'explore' | 'play'): void {
+    if (mode === 'play') {
+      // Drawn dots, not stock photos: the count shown is always exactly right.
+      this.playCards = Array.from({ length: PLAY_MAX }, (_, i) => {
+        const n = i + 1;
+        const word = NUMBER_WORDS[n];
+        return { id: `num-${n}`, label: word.charAt(0).toUpperCase() + word.slice(1), category: 'number', count: n };
+      });
+    }
+    this.mode = mode;
+  }
+
   private selectNumber(item: NumberItem): void {
     this.selectedNumber = item;
     this.progressManager.log('activity', 'Numbers', item.isCustom ? item.label : String(item.number));
@@ -197,10 +220,13 @@ export class AppNumbers extends LitElement {
       <div class="container">
         <h1>Numbers</h1>
         <p class="subtitle">Tap a number to hear it. Add real, quantity-accurate photos of Cayden's own things below.</p>
+        <div class="mode-switch" role="group" aria-label="Explore or play"><button class=${this.mode === 'explore' ? 'active' : ''} aria-pressed=${this.mode === 'explore'} @click=${() => this.setMode('explore')}>Explore</button><button class=${this.mode === 'play' ? 'active' : ''} aria-pressed=${this.mode === 'play'} data-testid="play-mode" @click=${() => this.setMode('play')}>Play</button></div>
+        ${this.mode === 'play' ? html`<learning-game game="numbers" .cards=${this.playCards}></learning-game>` : html`
         <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real counting photos</a>
         ${this.selectedNumber ? html`<div class="selected-card"><img src=${this.selectedNumber.imageUrl} alt=${this.selectedNumber.label} /><div><div class="selected-value">${this.selectedNumber.isCustom ? '' : this.selectedNumber.number}</div><div class="selected-label">${this.selectedNumber.label}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
         <div class="number-grid">${currentNumbers.map((item) => html`<button class="number-button" @click=${() => this.selectNumber(item)}>${item.isCustom ? '' : html`<span class="number-badge">${item.number}</span>`}<img src=${item.imageUrl} alt=${item.label} /><div class="card-copy"><div class="number-name">${item.isCustom ? item.label : item.number}${item.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div><div class="number-label">${item.label}</div></div></button>`)}</div>
+        `}
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

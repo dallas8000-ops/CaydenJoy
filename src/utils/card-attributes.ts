@@ -27,3 +27,40 @@ export const OBJECT_FACTS: Record<string, CardFact> = {
 export function objectFact(id: string): CardFact | undefined {
   return OBJECT_FACTS[id];
 }
+
+/** Colors game: one familiar thing of that color. */
+export const COLOR_FACTS: Record<string, CardFact> = {
+  red: { fact: 'A fire truck is red.' },
+  blue: { fact: 'The sky is blue.' },
+  green: { fact: 'Grass is green.' },
+  yellow: { fact: 'A banana is yellow.' },
+  purple: { fact: 'Grapes can be purple.' },
+  pink: { fact: 'A flamingo is pink.' },
+  orange: { fact: 'An orange is orange.' },
+  brown: { fact: 'Chocolate is brown.' },
+  black: { fact: 'The night sky is black.' },
+  white: { fact: 'Milk is white.' },
+};
+
+/** Places game: what we do there. */
+export const PLACE_FACTS: Record<string, CardFact> = {
+  home: { fact: 'We sleep at home.' },
+  school: { fact: 'We learn at school.' },
+  park: { fact: 'We play outside at the park.' },
+  store: { fact: 'We buy food at the store.' },
+  doctor: { fact: 'The doctor helps us feel better.' },
+  beach: { fact: 'We play in the sand at the beach.' },
+  restaurant: { fact: 'We eat at a restaurant.' },
+  library: { fact: 'We read books at the library.' },
+  zoo: { fact: 'We see animals at the zoo.' },
+  therapy: { fact: 'We practise new things at therapy.' },
+  playground: { fact: 'We swing and slide at the playground.' },
+};
+
+export function colorFact(id: string): CardFact | undefined {
+  return COLOR_FACTS[id];
+}
+
+export function placeFact(id: string): CardFact | undefined {
+  return PLACE_FACTS[id];
+}

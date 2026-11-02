@@ -6,6 +6,9 @@ import { CustomImagesManager } from '../utils/custom-images-manager.js';
 import { SentenceBuilder } from '../utils/sentence-builder.js';
 import { ProgressManager } from '../utils/progress-manager.js';
 import { resolveRouterPath } from '../router';
+import '../components/learning-game.js';
+import type { GameCard } from '../components/learning-game.js';
+import { colorFact } from '../utils/card-attributes.js';
 
 interface ColorItem {
   id: string;
@@ -49,6 +52,8 @@ export class AppColors extends LitElement {
   @state() showNewTabModal = false;
   @state() newTabName = '';
   @state() customColors: ColorItem[] = [];
+  @state() mode: 'explore' | 'play' = 'explore';
+  private playCards: GameCard[] = [];
 
   private premiumManager = PremiumManager.getInstance();
   private accessibilityManager = AccessibilityManager.getInstance();
@@ -91,6 +96,9 @@ export class AppColors extends LitElement {
     .modal-input { width: 100%; box-sizing: border-box; margin-bottom: 1rem; padding: 0.85rem; border: 2px solid #c9d4e1; border-radius: 0.4rem; font-size: 1rem; }
     .modal-buttons { display: flex; gap: 0.75rem; justify-content: flex-end; }
     .modal-btn-secondary { border: 0; background: #e8edf3; color: #243041; }
+    .mode-switch { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0 0 1rem; padding: 0.35rem; background: #e8edf3; border-radius: 0.5rem; }
+    .mode-switch button { min-height: 48px; min-width: 120px; border: 0; border-radius: 0.4rem; background: transparent; color: #243041; font-size: 1rem; font-weight: 900; cursor: pointer; }
+    .mode-switch button.active { background: #243041; color: #fff; }
     @media (max-width: 640px) { :host { padding: 0.8rem; } h1 { font-size: 1.55rem; } .photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; } .photo-button { grid-template-rows: 116px 16px auto; min-height: 220px; } .selected-card { grid-template-columns: 1fr; } .selected-card img, .selected-swatch { width: 100%; height: 160px; } }
   `;
 
@@ -169,6 +177,15 @@ export class AppColors extends LitElement {
     this.saveTabs();
   }
 
+  private setMode(mode: 'explore' | 'play'): void {
+    if (mode === 'play') {
+      // Built-in colors only: an uploaded photo's color can't be known from its name.
+      const colors = this.getActiveTab()?.colors ?? this.colors;
+      this.playCards = colors.map((c) => ({ id: c.id, label: c.name, category: 'color', swatch: c.hex, fact: colorFact(c.id)?.fact }));
+    }
+    this.mode = mode;
+  }
+
   private selectColor(color: ColorItem): void {
     this.selectedColor = color;
     this.progressManager.log('activity', 'Colors', color.name);
@@ -183,10 +200,13 @@ export class AppColors extends LitElement {
       <div class="container">
         <h1>Colors</h1>
         <p class="subtitle">Tap a color to hear its name. Add photos of familiar objects to make the board personal.</p>
+        <div class="mode-switch" role="group" aria-label="Explore or play"><button class=${this.mode === 'explore' ? 'active' : ''} aria-pressed=${this.mode === 'explore'} @click=${() => this.setMode('explore')}>Explore</button><button class=${this.mode === 'play' ? 'active' : ''} aria-pressed=${this.mode === 'play'} data-testid="play-mode" @click=${() => this.setMode('play')}>Play</button></div>
+        ${this.mode === 'play' ? html`<learning-game game="colors" .cards=${this.playCards}></learning-game>` : html`
         <a class="add-photos-link" href="${resolveRouterPath('custom-images')}?category=${this.CUSTOM_CATEGORY}">📸 Add Cayden's real color photos</a>
         ${this.selectedColor ? html`<div class="selected-card" style="--selected-color: ${this.selectedColor.hex}">${this.selectedColor.isCustom ? html`<img src=${this.selectedColor.imageUrl} alt=${this.selectedColor.name} />` : html`<div class="selected-swatch" role="img" aria-label=${this.selectedColor.name}></div>`}<div><div class="selected-name">${this.selectedColor.name}</div><div class="selected-example">${this.selectedColor.example}</div></div></div>` : ''}
         ${canAddTabs ? html`<div class="tabs-container">${this.tabs.map((tab) => html`<button class="tab-button ${tab.id === this.activeTabId ? 'active' : ''}" @click=${() => this.switchTab(tab.id)}>${tab.name}</button>`)}<button class="add-tab-btn" @click=${() => this.showNewTabModal = true}>New Tab</button></div>` : ''}
         <div class="photo-grid">${currentColors.map((color) => html`<button class="photo-button" style="--color: ${color.hex}" @click=${() => this.selectColor(color)}>${color.isCustom ? html`<img src=${color.imageUrl} alt=${color.name} />` : html`<div class="color-swatch" role="img" aria-label=${color.name}></div>`}<div class="color-strip" aria-hidden="true"></div><div class="card-copy"><div class="photo-name">${color.name}${color.isCustom ? html`<span class="custom-badge">Cayden's</span>` : ''}</div><div class="photo-example">${color.isCustom ? color.name : color.example}</div></div></button>`)}</div>
+        `}
       </div>
       ${this.showNewTabModal ? html`<div class="modal-overlay" @click=${() => this.showNewTabModal = false}><div class="modal" @click=${(e: Event) => e.stopPropagation()}><div class="modal-header">Create New Tab</div><input class="modal-input" placeholder="Enter tab name" .value=${this.newTabName} @input=${(e: Event) => this.newTabName = (e.target as HTMLInputElement).value} @keydown=${(e: KeyboardEvent) => e.key === 'Enter' ? this.createNewTab() : e.key === 'Escape' ? this.showNewTabModal = false : undefined} autofocus /><div class="modal-buttons"><button class="modal-btn modal-btn-secondary" @click=${() => this.showNewTabModal = false}>Cancel</button><button class="modal-btn modal-btn-primary" @click=${this.createNewTab}>Create Tab</button></div></div></div>` : ''}
     `;

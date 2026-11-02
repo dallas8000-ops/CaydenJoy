@@ -160,3 +160,31 @@ test('describe: what the upload preview shows; people never get facts', () => {
   assert.equal(LearningEngine.describe({ id: 'p', label: 'Socks', category: 'object', plural: true }), 'Those are socks.');
   assert.equal(LearningEngine.describe({ id: 'g', label: 'Grandma', category: 'person', fact: 'for hugs' }), "That's Grandma.");
 });
+
+test('colors: no article, fact from card, plain "Here is red"', () => {
+  const red: LearningCard = { id: 'red', label: 'Red', category: 'color', fact: 'An apple can be red.' };
+  const blue: LearningCard = { id: 'blue', label: 'Blue', category: 'color', fact: 'The sky is blue.' };
+  assert.equal(LearningEngine.prompt(red), 'Find red.');
+  assert.equal(LearningEngine.explain(blue, red), "That's blue. The sky is blue. Here is red.");
+  assert.equal(LearningEngine.praise(red, 'independent'), 'Yes! Red.');
+});
+
+test('numbers: count-along explanation', () => {
+  const two: LearningCard = { id: 'n2', label: 'Two', category: 'number', count: 2 };
+  const three: LearningCard = { id: 'n3', label: 'Three', category: 'number', count: 3 };
+  assert.equal(LearningEngine.prompt(three), 'Find three.');
+  assert.equal(LearningEngine.explain(two, three), "That's two. Let's count three: one, two, three.");
+  assert.equal(LearningEngine.countAlong({ id: 'x', label: 'Ten', category: 'number', count: 99 }), "Let's count ten: one, two, three, four, five, six, seven, eight, nine, ten.");
+});
+
+test('places: definite article, and possessive uploads keep their own wording', () => {
+  const park: LearningCard = { id: 'park', label: 'Park', category: 'place' };
+  const zoo: LearningCard = { id: 'zoo', label: 'Zoo', category: 'place', fact: 'We see animals at the zoo.' };
+  const grandmas: LearningCard = { id: 'g', label: "Grandma's house", category: 'place' };
+  assert.equal(LearningEngine.prompt(park), 'Find the park.');
+  assert.equal(LearningEngine.explain(zoo, park), "That's the zoo. We see animals at the zoo. Here is the park.");
+  assert.equal(LearningEngine.prompt(grandmas), "Find Grandma's house.");
+  assert.equal(LearningEngine.explain(park, grandmas), "That's the park. Here is Grandma's house.");
+  assert.equal(LearningEngine.praise(grandmas, 'independent'), "Yes! Grandma's house.");
+  assert.equal(LearningEngine.normalizeFact({ label: 'Park', category: 'place' }, 'for playing'), 'The park is for playing.');
+});
